@@ -20,29 +20,41 @@ const clerkWebhooks = async (req, res) => {
         // Lấy dữ liệu từ req body
         const {data, type} = req.body;
 
-        const userData = {
-            _id: data.id,
-            email: data.email_addresses[0].email_address,
-            username: data.first_name + " " + data.last_name,
-            image: data.image_url,
-        }
+        // const userData = {
+        //     _id: data.id,
+        //     email: data.email_addresses[0].email_address,
+        //     username: data.first_name + " " + data.last_name,
+        //     image: data.image_url,
+        // }
 
         // Xử lý sự kiện
         switch (type) {
             case "user.created": {
                 // Tạo user mới trong database
+                const userData = {
+                    _id: data.id,
+                    email: data.email_addresses[0].email_address,
+                    username: data.first_name + " " + data.last_name,
+                    image: data.image_url,
+                }
                 await User.create(userData);
                 break;
             }
 
             case "user.updated": {
                 // Update user trong database
+                const userData = {
+                    _id: data.id,
+                    email: data.email_addresses[0].email_address,
+                    username: data.first_name + " " + data.last_name,
+                    image: data.image_url,
+                }
                 await User.findByIdAndUpdate(data.id, userData);
                 break;
             }
 
             case "user.deleted": {
-                // Update user trong database
+                // Delete user trong database
                 await User.findByIdAndDelete(data.id);
                 break;
             }

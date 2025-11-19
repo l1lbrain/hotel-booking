@@ -1,7 +1,16 @@
 import React from 'react'
 import { assets } from '../assets/assets'
+import { useAppContext } from '../context/AppContext'
 
 const Hero = () => {
+
+    const {navigate, axios, getToken} = useAppContext();
+
+    const onSearch = async (e) => {
+        e.preventDefault();
+        navigate(`/rooms?`)
+    }
+
   return (
     <div className='flex flex-col items-center justify-center px-6 md:px-16 lg:px-24 xl:px-32 text-white overflow-hidden'>
         {/* <p className='bg-[#49B9FF]/50 px-3.5 py-1 rounded-full mt-20'>The Ultimate Hotel Experience</p> */}
@@ -11,7 +20,7 @@ const Hero = () => {
         facilisis, metus justo tincidunt mauris.</p> */}
 
         {/* Search Form */}
-        <form className='bg-white/30 backdrop-blur-sm text-white rounded-md px-6 py-4 mt-8 flex flex-col md:flex-row max-md:items-start gap-4 max-md:mx-auto absolute bottom-10 '>
+        <form onSubmit={onSearch} className='bg-white/30 backdrop-blur-sm text-white rounded-md px-6 py-4 mt-8 flex flex-col md:flex-row max-md:items-start gap-4 max-md:mx-auto absolute bottom-10 '>
 
             {/* <div>
                 <div className='flex items-center gap-2'>

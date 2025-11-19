@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
-import { facilityIcons, roomsDummyData } from '../assets/assets'
+import { facilityIcons } from '../assets/assets'
 import RatingStar from '../components/RatingStar';
-import { useNavigate } from 'react-router-dom';
 import Pagination from '../components/Pagination';
+import { useAppContext } from '../context/AppContext';
+// import { useSearchParams } from 'react-router-dom';
+import { useMemo } from 'react';    
 
 const CheckBox = ({label, selected = false, onChange = () => {}}) => {
     return (
@@ -23,21 +25,84 @@ const RadioButton = ({label, selected = false, onChange = () => {}}) => {
 }
 
 const RoomList = () => {
+    // const searchParams = useSearchParams();
 
-    const navigate = useNavigate();
+    const {rooms, navigate, currency} = useAppContext();
+
     const [openFilter, setOpenFilter] = useState(false);
+    const [selectedFilters, setSelectedFilters] = useState({
+        roomType: [],
+        priceRange: [],
+    });
+    const [selectedSortOption, setSelectedSortOption] = useState('');
+
     const [currentPage, setCurrentPage] = useState(1);
     // const [roomsPerPage, setRoomsPerPage] = useState(4);
 
-    const roomTypes = ["Premium", "Deluxe", "Suite", "Family", "Single", "Double"];
-    const priceRanges = ["Dưới 500,000", "500,000 - 1,000,000", "1,000,000 - 2,000,000", "Trên 2,000,000"];
-    const sortOptions = ["Giá thấp đến cao", "Giá cao đến thấp", "Đánh giá cao đến thấp", "Mới nhất"];
+    const roomTypes = ["Premium Deluxe", "Deluxe Room", "Family Room", "Luxury Room"];
+    const priceRanges = [`0 - 500000`, "500000 - 1000000", "1000000 - 2000000", "2000000 - 5000000"];
+    const sortOptions = ["Giá thấp đến cao", "Giá cao đến thấp", "Mới nhất"];
+
+    const handleFilterChange = (checked, value, type) => {
+        setSelectedFilters((prevFilters) => {
+            const updatedFilters = {...prevFilters};
+            if (checked) {
+                updatedFilters[type].push(value);
+            } else {
+                updatedFilters[type] = updatedFilters[type].filter((item) => item !== value);
+            }
+            return updatedFilters;
+        })
+    }
+
+    const handleSortChange = (sortOption) => {
+        setSelectedSortOption(sortOption);
+    } 
+
+    const matchingRoomsType = (room) => {
+        return selectedFilters.roomType.length == 0 || selectedFilters.roomType.includes(room.roomType);
+    }
+
+    const matchingPriceRange = (room) => {
+        return selectedFilters.priceRange.length === 0 || selectedFilters.priceRange.some((range) => {
+            const [min, max] = range.split(' - ').map(Number);
+            return room.pricePerNight >= min && room.pricePerNight <= max;
+        })
+    }
+
+    const sortRooms = (a, b) => {
+        if (selectedSortOption === "Giá thấp đến cao") {
+            return a.pricePerNight - b.pricePerNight;
+        }
+
+        if (selectedSortOption === "Giá cao đến thấp") {
+            return b.pricePerNight - a.pricePerNight;
+        }
+
+        if (selectedSortOption === "Mới nhất") {
+            return new Date(b.createdAt) - new Date(a.createdAt);
+        }
+        return 0;
+    }
+
+    const filteredRooms = useMemo(() => {
+        return rooms.filter(room => matchingRoomsType(room) && matchingPriceRange(room)).sort(sortRooms);
+    }, [rooms, selectedFilters, selectedSortOption]);
+
+    // Xóa bộ lọc
+    const clearFilters = () => {
+        setSelectedFilters({
+            roomType: [],
+            priceRange: [],
+        });
+        setSelectedSortOption('');
+    }
 
     const roomsPerPage = 4;
-    const totalRooms = roomsDummyData.length;
+    const totalRooms = filteredRooms.length;
     const lastRoomIndex = currentPage * roomsPerPage;
     const firstRoomIndex = lastRoomIndex - roomsPerPage;
-    const currentRooms = roomsDummyData.slice(firstRoomIndex, lastRoomIndex);
+    const currentRooms = filteredRooms.slice(firstRoomIndex, lastRoomIndex);
 
   return (
     <div className='flex flex-col lg:flex-row items-start justify-between pt-28 md:pt-35 px-4 md:px-16 lg:px-24'>
@@ -51,10 +116,10 @@ const RoomList = () => {
                 <div key={room.id} className='flex flex-col md:flex-row items-start py-10 gap-6 border-b border-gray-300 last:pb-30 last:border-0'>
                     <img onClick={() => {navigate(`/rooms/${room._id}`); scrollTo(0,0)}} src={room.images[0]} alt="room-img" title="Xem chi tiết phòng" className='max-h-65 md:w-1/2 rounded-xl shadow-lg object-cover cursor-pointer'/>
                     <div className='md:w-1/2 flex flex-col gap-2'>
-                        <p onClick={() => {navigate(`/rooms/${room._id}`); scrollTo(0,0)}} className='text-gray-800 text-3xl font-playfair cursor-pointer'>{room.hotel.name}</p>
+                        <p onClick={() => {navigate(`/rooms/${room._id}`); scrollTo(0,0)}} className='text-gray-800 text-3xl font-playfair cursor-pointer'>{room.roomType}</p>
                         <div className='md:w-max flex flex-col gap-2'>
                             <div className='flex items-center'>
-                                <RatingStar rating={Math.round(room.rating)}/>
+                                <RatingStar rating={Math.round(4.2)}/>
                                 <p className='ml-2'>200+ Đánh giá</p>
                             </div>
                         </div>
@@ -84,27 +149,27 @@ const RoomList = () => {
                 <p className='text-base font-medium text-gray-800'>BỘ LỌC</p>
                 <div className='text-xs cursor-pointer'>
                     <span onClick={() => setOpenFilter(!openFilter)} className='lg:hidden'>{openFilter ? 'ẨN' : 'HIỆN'}</span>
-                    <span className='hidden lg:block'>XÓA</span>
+                    <span onClick={() => clearFilters()} className='hidden lg:block'>XÓA</span>
                 </div>
             </div>
 
             <div className={`${openFilter ? "h-auto" : "h-0 lg:h-auto"} overflow-hidden transition-all duration-700`}>
                 <div className='px-5 pt-5'>
                     <p className='font-medium text-gray-800 pb-2'>Loại Phòng</p>
-                    {roomTypes.map((type, index) => (
-                        <CheckBox key={index} label={type}/>
+                    {roomTypes.map((room, index) => (
+                        <CheckBox key={index} label={room} selected={selectedFilters.roomType.includes(room)} onChange={(checked) => handleFilterChange(checked, room, 'roomType')}/>
                     ))}
                 </div>
                 <div className='px-5 pt-5'>
                     <p className='font-medium text-gray-800 pb-2'>Khoảng Giá</p>
                     {priceRanges.map((range, index) => (
-                        <CheckBox key={index} label={`${range}₫`}/>
+                        <CheckBox key={index} label={`${range}${currency}`} selected={selectedFilters.priceRange.includes(range)} onChange={(checked) => handleFilterChange(checked, range, 'priceRange')}/>
                     ))}
                 </div>
                 <div className='px-5 pt-5 pb-7'>
                     <p className='font-medium text-gray-800 pb-2'>Sắp Xếp Theo</p>
                     {sortOptions.map((option, index) => (
-                        <RadioButton key={index} label={option}/>
+                        <RadioButton key={index} label={option} selected={selectedSortOption === option} onChange={() => handleSortChange(option)}/>
                     ))}
                 </div>
             </div>

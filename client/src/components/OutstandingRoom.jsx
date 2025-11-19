@@ -1,19 +1,19 @@
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
-import { roomsDummyData } from '../assets/assets'
+// import { useNavigate } from 'react-router-dom'
 import Card from './Card'
 import Title from './Title'
+import { useAppContext } from '../context/AppContext'
 
 const OutstandingRoom = () => {
-    const navigate = useNavigate();
+    const {rooms, navigate} = useAppContext();
 
-  return (
+  return rooms.length > 0 && (
     <div className='flex flex-col items-center px-6 md:px-16 lg:px-24 bg-slate-50 py-20'>
 
         <Title title="Phòng nghỉ nổi bật" description="Những căn phòng được đánh giá tốt nhất dựa trên trải nghiệm của khách hàng"/>
 
         <div className='flex flex-wrap items-center justify-center gap-6 mt-20'>
-            {roomsDummyData.slice(0,4).map((room, i) => (
+            {rooms.slice(0,4).map((room, i) => (
                 <Card key={room._id} room={room} index={i}/>
             ))}
         </div>

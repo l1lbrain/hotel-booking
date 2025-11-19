@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react'
 import Title from '../../components/Title';
 import { assets, roomsDummyData } from '../../assets/assets';
 import { useParams } from 'react-router-dom';
+import { useAppContext } from '../../context/AppContext';
 
 const EditRoom = () => {
     const {id} = useParams();
+    const {user, getToken, axios} = useAppContext();
 
     const [images, setImages] = useState({
             1: null,
@@ -27,6 +29,7 @@ const EditRoom = () => {
             'TV & truyền hình cáp' : false,
         }
     })
+
 
     useEffect(() => {
         const room = roomsDummyData.find(room => room._id == id);
@@ -75,7 +78,7 @@ const EditRoom = () => {
                 </div>
             ))}
         </div>
-        <button className='bg-primary text-white px-6 py-2 rounded mt-8 cursor-pointer'>Thay đổi</button>
+        <button onClick={() => handleEdit()} className='bg-primary text-white px-6 py-2 rounded mt-8 cursor-pointer'>Thay đổi</button>
     </form>
     </div>
   )

@@ -1,14 +1,36 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Title from '../components/Title'
 import { assets, userBookingsDummyData } from '../assets/assets'
+import { useAppContext } from '../context/AppContext'
+import toast from 'react-hot-toast'
 
 const MyBookings = () => {
 
-    const [bookings, setBookings] = useState(userBookingsDummyData);
+    const {axios, getToken, user} = useAppContext();
+    const [bookings, setBookings] = useState([]);
+
+    const fetchUserBookings = async () => {
+        try {
+            const {data} = await axios.get('/api/bookings/user', {headers: {Authorization: `Bearer ${await getToken()}`}})
+            if (data.success) {
+                setBookings(data.bookings);
+            } else {
+                toast.error(data.message);
+            }
+        } catch (error) {
+                toast.error(error.message);
+        }
+    }
+
+    useEffect(() => {
+        if (user) {
+            fetchUserBookings();
+        }
+    }, [user])
 
   return (
     <div className='py-28 md:pb-35 md:pt-32 px-4 md:px-16 lg:px-24 xl:px-32 flex flex-col'>
-        <Title font="font-inter font-extralight" title="Đặt chỗ của tôi" description="Dễ dàng theo dõi và quản lý những phòng bạn đã đặt chỉ với vài cú nhấp chuột"/>
+        <Title font="font-inter font-extralight" title="Đơn hàng của tôi" description="Dễ dàng theo dõi và quản lý những phòng bạn đã đặt chỉ với vài cú nhấp chuột"/>
 
     <div className='max-w-6xl mt-8 w-full text-gray-800'>
 
@@ -24,14 +46,14 @@ const MyBookings = () => {
                 <div className='flex flex-col md:flex-row'>
                     <img src={booking.room.images[0]} alt="room-image" className='min-md:w-44 rounded shadow object-cover'/>
                     <div className='flex flex-col gap-1.5 max-md:mt-3 min-md:ml-4'>
-                        <p className='font-playfair text-2xl'>{booking.hotel.name}<span className='text-sm'> ({booking.room.roomType})</span></p>
+                        <p className='font-playfair text-2xl'>{booking.room.roomType}<span className='text-sm'> ({booking.room.roomType})</span></p>
                         <div className='flex items-center gap-1 text-sm text-gray-500'>
-                            <img src={assets.locationIcon} alt="location-icon"/><span>{booking.hotel.address}</span>
+                            <img src={assets.locationIcon} alt="location-icon"/><span>D8 Giảng Võ, Phường Giảng Võ, Hà Nội</span>
                         </div>
                         <div className='flex items-center gap-1 text-sm text-gray-500'>
                             <img src={assets.guestsIcon} alt="guest-icon"/><span>Số lượng khách: {booking.guests}</span>
                         </div>
-                        <p className='text-base'>Tổng tiền: {booking.totalPrice}₫</p>
+                        <p className='text-base'>Tổng tiền: {booking.totalPrice.toLocaleString("vi-VN")}₫</p>
                     </div>  
                 </div>
                 {/* Date  */}
