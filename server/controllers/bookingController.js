@@ -125,27 +125,29 @@ export const stripePayment = async (req, res) => {
         const line_items = [
             {
                 price_data: {
-                    currency: "usd",
+                    currency: "vnd",
                     product_data: {
                         name: roomData.roomType
                     },
-                    unit_amount: totalPrice * 100
+                    unit_amount: totalPrice 
                 },
                 quantity: 1,
             }
         ]
-        //Create checkout session
-        // const session = await stripeInstance.checkout.sessions.create({
-        //     line_items,
-        //     mode: "payment",
-        //     success_url: ``,
-        //     cancel_url: ,
-        //     metadata: {
-        //         bookingId,
-        //     }
-        // })
+        // Create checkout session
+        const session = await stripeInstance.checkout.sessions.create({
+            line_items,
+            mode: "payment",
+            success_url: `${origin}/loader/my-bookings`,
+            cancel_url: `${origin}/my-bookings`,
+            metadata: {
+                bookingId,
+            }
+        })
+        res.json({success: true, url: session.url})
 
     } catch (error) {
-        
+        console.log(error)
+        res.json({success: false, message: "Thanh toán thất bại"})
     }
 }
