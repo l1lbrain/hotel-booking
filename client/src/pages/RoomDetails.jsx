@@ -14,6 +14,7 @@ const RoomDetails = () => {
     const [checkInDate, setCheckInDate] = useState(null);
     const [checkOutDate, setCheckOutDate] = useState(null);
     const [guests, setGuests] = useState(1);
+    const [message, setMessage] = useState("");
     const [isAvailable, setIsAvailable] = useState(false);
 
     const checkAvailability = async () => {
@@ -128,7 +129,11 @@ const RoomDetails = () => {
               <div className='w-px h-15 bg-gray-300/70 max-md:hidden'></div>
               <div className='flex flex-col'>
                 <label htmlFor="guests" className='font-medium'>Khách</label>
-                <input onChange={(e) => setGuests(e.target.value)} value={guests} type="number" min={1} max={5} id='guests' placeholder='1' className='max-w-20 rounded border border-gray-300 px-3 py-2 mt-1.5 outline-none' required/>
+                {/* <input onChange={(e) => setGuests(e.target.value)} value={guests} type="number" min={1} max={5} id='guests' placeholder='1' className='max-w-20 rounded border border-gray-300 px-3 py-2 mt-1.5 outline-none' required/> */}
+                <input onChange={(e) => {let val = Number(e.target.value); if(e.target.value==="") {setGuests(""); return}; if(val<1) {setMessage("Số lượng tối thiểu là 1"); setTimeout(() => setMessage(""), 2000); val=1}; if(val>5) {setMessage("Số lượng tối đa là 5"); setTimeout(() => setMessage(""), 2000); val=5} ;setGuests(val)}} value={guests} type="number" min={1} max={5} id='guests' placeholder='1' className='max-w-20 rounded border border-gray-300 px-3 py-2 mt-1.5 outline-none' required/>
+                {message && (
+                  <div className="text-xs text-red-500 mt-1 opacity-80">{message}</div>
+                )}
               </div>
 
           </div>

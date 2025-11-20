@@ -13,6 +13,8 @@ const Dashboard = () => {
         totalRevenue: 0
     });
 
+    // const [bookingsData, setBookingsData] = useState([]);
+
     const fetchDashboardData = async () => {
         try {
             const {data} = await axios.get('/api/bookings/hotel', {headers: {
@@ -20,7 +22,9 @@ const Dashboard = () => {
             }});
             if (data.success) {
                 console.log(data);
-                setDashboardData(data.dashboardData);
+                // setDashboardData(data.dashboardData);
+                setDashboardData(data);
+                // setBookingsData(data.bookings);
             }else {
                 toast.error(data.message);
             }
@@ -35,7 +39,11 @@ const Dashboard = () => {
         }
     }, [user])
 
-  return (
+    // console.log(bookingsData);
+        console.log(dashboardData);
+
+
+  return dashboardData.dashboardData && (
     <div>
         <Title align="items-start!" font="font-inter text-4xl!" title="Bảng điều khiển" description="Theo dõi các đơn đặt phòng và phân tích thu nhập theo thời gian thực"/>
         <div className='flex gap-4 my-8'>
@@ -44,7 +52,7 @@ const Dashboard = () => {
                 <img src={assets.totalBookingIcon} alt="" className='max-sm:hidden h-10'/>
                 <div className='flex flex-col sm:ml-4 font-medium'>
                     <p className='text-blue-500 text-md'>Tổng đơn đặt phòng</p>
-                    <p className='text-neutral-500 text-base'>{dashboardData.totalBookings}</p>
+                    <p className='text-neutral-500 text-base'>{dashboardData.dashboardData.totalBookings}</p>
                 </div>
             </div>
             {/* Total Revenue */}
@@ -52,7 +60,7 @@ const Dashboard = () => {
                 <img src={assets.totalRevenueIcon} alt="" className='max-sm:hidden h-10'/>
                 <div className='flex flex-col sm:ml-4 font-medium'>
                     <p className='text-blue-500 text-md'>Tổng doanh thu</p>
-                    <p className='text-neutral-500 text-base'>{dashboardData.totalRevenue}{currency}</p>
+                    <p className='text-neutral-500 text-base'>{dashboardData.dashboardData.totalRevenue.toLocaleString("vi-VN")}{currency}</p>
                 </div>
             </div>
         </div>
@@ -70,16 +78,16 @@ const Dashboard = () => {
                     </tr>
                 </thead>
                 <tbody className='text-sm'>
-                    {/* {dashboardData.bookings.map((item, index) => (
+                    {dashboardData.bookings.map((item, index) => (
                         <tr key={index}>
                             <td className='py-3 px-4 text-gray-700 border-t border-gray-300'>
                                 {item.user.username}
                             </td>
                             <td className='py-3 px-4 text-gray-700 border-t border-gray-300 max-sm:hidden'>
-                                {item.room.hotel.name}
+                                {item.room.roomType}
                             </td>
                             <td className='py-3 px-4 text-gray-700 border-t border-gray-300 text-center'>
-                                {item.totalPrice}{currency}
+                                {item.totalPrice.toLocaleString("vi-VN")}{currency}
                             </td>
                             <td className='py-3 px-4 border-t border-gray-300 flex'>
                                 <button className={`py-1 px-3 text-xs rounded-full mx-auto ${item.isPaid ? "bg-green-200 text-green-600" : "bg-amber-200 text-yellow-600"}`}>
@@ -87,7 +95,7 @@ const Dashboard = () => {
                                 </button>
                             </td>
                         </tr>
-                    ))} */}
+                    ))}
                 </tbody>
             </table>
         </div>
