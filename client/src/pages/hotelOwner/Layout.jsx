@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
-import Navbar from '../../components/hotelOwner/Navbar'
-import SideBar from '../../components/hotelOwner/SideBar'
+import Navbar from '../../components/hotelOwner/Navbar.jsx'
+import SideBar from '../../components/hotelOwner/Sidebar.jsx'
 import { Outlet } from 'react-router-dom'
 import { useAppContext } from '../../context/AppContext'
 import toast from 'react-hot-toast'
