@@ -119,6 +119,20 @@ export const getUserBookings = async (req, res) => {
 }
 
 //API lấy tất cả booking của owner GET /api/bookings/owner
+export const getOwnerBookings = async (req, res) => {
+    try {
+        const bookings = await Booking.find({}).populate('room user').sort({createdAt: -1});
+        //Tổng đơn đặt phòng
+        const totalBookings = bookings.length;
+        //Tổng doanh thu
+        // const totalRevenue = bookings.reduce((total, booking) => total + booking.totalPrice, 0);
+        const totalRevenue = bookings.reduce((total, booking) => booking.isPaid ? (total + booking.totalPrice) : total, 0);
+        res.json({success: true, bookings, dashboardData: {totalBookings, totalRevenue}});
+    } catch (error) {
+        console.log(error);
+        res.json({success: false, message: "Failed to fetch bookings"});
+    }
+}
 
 export const stripePayment = async (req, res) => {
     try {
