@@ -23,6 +23,7 @@ const ListRoom = () => {
                 console.log(data);
                 setRooms(data.rooms);
             } else {
+                console.log("error here")
                 toast.error(data.message);
             }
         } catch (error) {
