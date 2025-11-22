@@ -2,6 +2,7 @@ import transporter from "../configs/nodemailer.js";
 import Booking from "../models/Booking.js"
 import Room from "../models/Room.js";
 import stripe from "stripe";
+import { Resend } from "resend"
 
 //Kiểm tra phòng còn trống hay không
 const checkAvailability = async ({checkInDate, checkOutDate, room}) => {
@@ -32,6 +33,9 @@ export const checkAvailabilityAPI = async (req, res) => {
 
 //API tạo booking mới POST /api/bookings/book
 export const createBooking = async (req, res) => {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+
     try {
         const {checkInDate, checkOutDate, room, guests} = req.body;
         const user = req.user._id;
@@ -75,8 +79,8 @@ export const createBooking = async (req, res) => {
                     <li><strong>ID: ${booking._id}</strong></li>
                     <li><strong>Tên phòng: ${roomData.roomType}</strong></li>
                     <li><strong>Địa chỉ: D8 Giảng Võ, Phường Giảng Võ, Hà Nội</strong></li>
-                    <li><strong>Ngày nhận phòng: ${booking.checkInDate.toDateString()}</strong></li>
-                    <li><strong>Ngày nhận phòng: ${booking.checkInDate.toDateString()}</strong></li>
+                    <li><strong>Ngày nhận phòng: ${booking.checkInDate.toLocaleDateString("vi-VN", options).replace(/^\w/, c => c.toUpperCase())}</strong></li>
+                    <li><strong>Ngày trả phòng: ${booking.checkOutDate.toLocaleDateString("vi-VN", options).replace(/^\w/, c => c.toUpperCase())}</strong></li>
                     <li><strong>Tổng tiền: ${booking.totalPrice.toLocaleString("vi-VN")}₫</strong></li>
                 </ul>
                 <p>Chúng tôi rất hân hạnh được chào đón bạn!</p>
@@ -84,7 +88,11 @@ export const createBooking = async (req, res) => {
             `
 
         }
-        await transporter.sendMail(mailInfo)
+        //Gửi mail bằng resend
+        const emailResponse = await resend.emails.send(mailInfo);
+        console.log("Đã gửi email: ", emailResponse);
+
+        // await transporter.sendMail(mailInfo)
         res.json({success: true, message: "Đặt phòng thành công"});
     } catch (error) {
         console.log(error);
