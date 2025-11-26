@@ -19,9 +19,9 @@ const Layout = () => {
   }, [isAdmin]);
 
   return (
-    <div className='flex flex-col h-screen'>
+    <div className='flex flex-col min-h-screen'>
         <Navbar/>
-        <div className='flex h-full'>
+        <div className='flex flex-1 h-full'>
             <SideBar/>
             <div className='flex-1 p-4 pt-10 md:px-10 h-full'>
                 <Outlet/>

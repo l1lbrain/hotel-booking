@@ -5,12 +5,30 @@ import stripe from "stripe";
 import { Resend } from "resend"
 
 //Kiểm tra phòng còn trống hay không
+// const checkAvailability = async ({checkInDate, checkOutDate, room}) => {
+//     try {
+//         const bookings = await Booking.find({
+//             room,
+//             checkInDate: { $lte: checkOutDate },
+//             checkOutDate: { $gte: checkInDate }
+//         })
+//         const isAvailable = bookings.length === 0;
+//         return isAvailable;
+//     } catch (error) {
+//         console.error(error.message);
+//     }
+// }
+
 const checkAvailability = async ({checkInDate, checkOutDate, room}) => {
     try {
         const bookings = await Booking.find({
             room,
-            checkInDate: { $lte: checkOutDate },
-            checkOutDate: { $gte: checkInDate }
+            status: { $in: ["Đang chờ", "Đã thanh toán"] },
+            $or: [
+                {checkInDate: { $lte: checkOutDate }},
+                {checkOutDate: { $gte: checkInDate }}
+            ]
+            
         })
         const isAvailable = bookings.length === 0;
         return isAvailable;
@@ -26,6 +44,7 @@ export const checkAvailabilityAPI = async (req, res) => {
         const isAvailable = await checkAvailability({checkInDate, checkOutDate, room});
         res.json({success: true, isAvailable});
     } catch (error) {
+        console.error("Lỗi checkAvailabilityAPI:", error);
         res.json({success: false, message: error.message});
     }
 }
@@ -131,6 +150,20 @@ export const getOwnerBookings = async (req, res) => {
     } catch (error) {
         console.log(error);
         res.json({success: false, message: "Failed to fetch bookings"});
+    }
+}
+
+//API hủy đơn đặt phòng
+export const cancelBooking = async (req, res) => {
+    try {
+        const bookingId = req.params.id;
+        const booking = await Booking.findByIdAndUpdate(bookingId, {status: "Đã hủy"}, {new: true});
+        if (!booking) {
+            return res.status(404).json({ success: false, message: "Không tìm thấy booking" });
+        }
+        res.json({success: true, booking, message: "Hủy phòng thành công!"});
+    } catch (error) {
+        res.json({success: false, message: "Lỗi server"});
     }
 }
 
