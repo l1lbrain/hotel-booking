@@ -3,12 +3,14 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {useUser, useAuth} from '@clerk/clerk-react';
 import {toast} from 'react-hot-toast';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
+    const [loading, setLoading] = useState(false);
 
     const currency = import.meta.env.VITE_CURRENCY || '₫';
     const navigate = useNavigate();
@@ -21,6 +23,7 @@ export const AppProvider = ({ children }) => {
 
     const fetchRoomsData = async () => {
         try {
+            setLoading(true);
             const {data} = await axios.get('/api/rooms');
             if (data.success) {
                 setRooms(data.rooms);
@@ -29,6 +32,8 @@ export const AppProvider = ({ children }) => {
             }
         } catch (error) {
             toast.error(error.message);
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -76,6 +81,9 @@ export const AppProvider = ({ children }) => {
         setRooms,
     };
 
+    if (loading) {
+        return <LoadingSpinner fullScreen={true} />
+    }
     return (
         <AppContext.Provider value={value}>
             {children}

@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react'
 import Title from '../../components/Title'
 import { assets } from '../../assets/assets'
 import { useAppContext } from '../../context/AppContext'
+import LoadingSpinner from '../../components/LoadingSpinner'
 
 const Dashboard = () => {
 
     const {currency, user, getToken, toast, axios} = useAppContext();
+    const [loading, setLoading] = useState(false);
 
     const [dashboardData, setDashboardData] = useState({
         bookings: [],
@@ -17,6 +19,7 @@ const Dashboard = () => {
 
     const fetchDashboardData = async () => {
         try {
+            setLoading(true);
             const {data} = await axios.get('/api/bookings/hotel', {headers: {
             Authorization: `Bearer ${await getToken()}`
             }});
@@ -30,6 +33,8 @@ const Dashboard = () => {
             }
         } catch (error) {
             toast.error(error.message);
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -56,8 +61,11 @@ const Dashboard = () => {
         }
     }, [user])
 
-    // console.log(bookingsData);
-        console.log(dashboardData);
+    console.log(dashboardData);
+
+    if (loading) {
+        return <LoadingSpinner fullScreen={true} />
+    }
 
 
   return dashboardData.dashboardData && (
@@ -100,7 +108,7 @@ const Dashboard = () => {
                     {dashboardData.bookings.map((item, index) => (
                         <tr key={index}>
                             <td className='py-3 px-4 text-gray-700 border-t border-gray-300'>
-                                {item.user.username} {item.user.role === 'deleted-user' ? "Đã xóa" : ""}
+                                {item.user.username} {item.user.role === 'deleted-user' && <span className='px-2 py-0.5 text-xs bg-gray-200 text-gray-600 rounded'>Đã xóa</span>}
                             </td>
                             <td className='py-3 px-4 text-gray-700 border-t border-gray-300 max-sm:hidden'>
                                 {item.room.roomType}
