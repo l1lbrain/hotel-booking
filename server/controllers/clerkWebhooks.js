@@ -55,7 +55,10 @@ const clerkWebhooks = async (req, res) => {
 
             case "user.deleted": {
                 // Delete user trong database
-                await User.findByIdAndDelete(data.id);
+                // await User.findByIdAndDelete(data.id);
+                
+                // Đổi role khi người dùng xóa tài khoản
+                await User.findByIdAndUpdate(data.id, {role: 'deleted-user'});
                 break;
             }
         
