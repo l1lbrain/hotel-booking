@@ -29,11 +29,14 @@ const EditRoom = () => {
             'Wifi Miễn Phí': false,
             'Bữa Sáng Miễn Phí': false,
             'Phục Vụ Tận Phòng': false,
-            'View Núi': false,
+            // 'View Núi': false,
             'Bể Bơi': false,
             'Áo choàng tắm': false,
             'Máy sấy tóc': false,
             'TV & truyền hình cáp': false,
+            'Điều Hòa' : false,
+            'Tủ Lạnh' : false,
+            'Dép Đi Trong Nhà' : false,
         }
     });
 

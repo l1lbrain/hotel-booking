@@ -22,11 +22,14 @@ const AddRoom = () => {
             'Wifi Miễn Phí' : false,
             'Bữa Sáng Miễn Phí' : false,
             'Phục Vụ Tận Phòng' : false,
-            'View Núi' : false,
+            // 'View Núi' : false,
             'Bể Bơi' : false,
             'Áo choàng tắm' : false,
             'Máy sấy tóc' : false,
             'TV & truyền hình cáp' : false,
+            'Điều Hòa' : false,
+            'Tủ Lạnh' : false,
+            'Dép Đi Trong Nhà' : false,
         }
     })
 
@@ -64,11 +67,14 @@ const AddRoom = () => {
                         'Wifi Miễn Phí' : false,
                         'Bữa Sáng Miễn Phí' : false,
                         'Phục Vụ Tận Phòng' : false,
-                        'View Núi' : false,
+                        // 'View Núi' : false,  
                         'Bể Bơi' : false,
                         'Áo choàng tắm' : false,
                         'Máy sấy tóc' : false,
                         'TV & truyền hình cáp' : false,
+                        'Điều Hòa' : false,
+                        'Tủ Lạnh' : false,
+                        'Dép Đi Trong Nhà' : false,
                     }
                 })
                 setImages({1: null, 2: null, 3: null, 4: null});

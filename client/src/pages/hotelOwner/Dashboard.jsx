@@ -38,6 +38,23 @@ const Dashboard = () => {
         }
     }
 
+    const confirmBooking = async (bookingId) => {
+        if (!bookingId) return;
+        const confirm = window.confirm("Bạn có chắc chắn muốn xác nhận đơn đặt phòng này không?");
+        if (!confirm) return;
+        try {
+            const {data} = await axios.patch(`/api/bookings/${bookingId}/confirm`, {}, {headers: {Authorization: `Bearer ${await getToken()}`}})
+            if (data.success) {
+                toast.success(data.message);
+                fetchDashboardData();
+            } else {
+                toast.error(data.message);
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || error.message || "Có lỗi xảy ra");
+        }
+    }
+
     const cancelBooking = async (bookingId) => {
         if (!bookingId) return;
         const confirm = window.confirm("Bạn có chắc chắn muốn hủy đơn đặt phòng này không?");
@@ -135,7 +152,8 @@ const Dashboard = () => {
                                 </button>
                             </td>
                             <td className='py-3 px-4 border-t border-gray-300 text-center'>
-                                <button onClick={() => cancelBooking(item._id)} disabled={item.status === "Đã hủy"} className={`py-1 px-3 text-xs rounded-full mx-auto border border-red-300 cursor-pointer text-red-500 ${item.status === "Đã hủy" && "!text-white bg-gray-400 border-none !cursor-default"}`}>{item.status === "Đã hủy" ? "Đã hủy" : "Hủy"}</button>
+                                <button onClick={() => confirmBooking(item._id)} disabled={item.status === "Đã hủy"} hidden={item.status === "Đã hủy"} className={`py-1 px-3 mr-0.5 text-xs rounded-full mx-auto border border-green-300 cursor-pointer text-green-500 ${item.isPaid && "!bg-green-200 !text-green-600 !border-none !cursor-default"}`}>{item.isPaid ? "Hoàn tất" : "Xác nhận"}</button>
+                                <button onClick={() => cancelBooking(item._id)} disabled={item.status === "Đã hủy"} hidden={item.isPaid} className={`py-1 px-3 text-xs rounded-full mx-auto border border-red-300 cursor-pointer text-red-500 ${item.status === "Đã hủy" && "!text-white bg-gray-400 border-none !cursor-default"}`}>{item.status === "Đã hủy" ? "Đã hủy" : "Hủy"}</button>
                             </td>
                         </tr>
                     ))}

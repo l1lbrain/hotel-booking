@@ -24,7 +24,7 @@ const checkAvailability = async ({checkInDate, checkOutDate, room}) => {
         const bookings = await Booking.find({
             room,
             status: { $in: ["Đang chờ", "Đã thanh toán"] },
-            $or: [
+            $and: [
                 {checkInDate: { $lte: checkOutDate }},
                 {checkOutDate: { $gte: checkInDate }}
             ]
@@ -159,9 +159,23 @@ export const cancelBooking = async (req, res) => {
         const bookingId = req.params.id;
         const booking = await Booking.findByIdAndUpdate(bookingId, {status: "Đã hủy"}, {new: true});
         if (!booking) {
-            return res.status(404).json({ success: false, message: "Không tìm thấy booking" });
+            return res.status(404).json({ success: false, message: "Không tìm thấy đơn hàng" });
         }
         res.json({success: true, booking, message: "Hủy phòng thành công!"});
+    } catch (error) {
+        res.json({success: false, message: "Lỗi server"});
+    }
+}
+
+//API xác nhận đơn đặt phòng
+export const confirmBooking = async (req, res) => {
+    try {
+        const bookingId = req.params.id;
+        const booking = await Booking.findByIdAndUpdate(bookingId, {isPaid: true}, {new: true});
+        if (!booking) {
+            return res.status(404).json({ success: false, message: "Không tìm thấy đơn hàng" });
+        }
+        res.json({success: true, booking, message: "Xác nhận đơn đặt phòng thành công!"});
     } catch (error) {
         res.json({success: false, message: "Lỗi server"});
     }
