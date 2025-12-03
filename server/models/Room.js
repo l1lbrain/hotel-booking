@@ -7,6 +7,11 @@ const roomSchema = new mongoose.Schema({
     amenities: { type: Array, required: true },
     images: [{ type: String }],
     isAvailable: { type: Boolean, default: true },
+    bedType: { 
+        type: String, 
+        enum: ["Giường đơn", "Giường đôi", "Giường cỡ lớn"], 
+        required: true 
+    },
 }, {timestamps: true});
 
 const Room = mongoose.model("Room", roomSchema);

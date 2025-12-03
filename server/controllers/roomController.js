@@ -4,7 +4,7 @@ import Room from '../models/Room.js';
 //API tạo phòng mới
 export const createRoom = async (req, res) => {
     try {
-        const {roomType, pricePerNight, amenities} = req.body;
+        const {roomType, pricePerNight, amenities, bedType} = req.body;
 
         // Up ảnh lên cloudinary
         const uploadImages = req.files.map(async (file) => {
@@ -19,6 +19,7 @@ export const createRoom = async (req, res) => {
             roomType,
             pricePerNight: +pricePerNight,
             amenities: JSON.parse(amenities),
+            bedType,
             images
         });
 
@@ -31,7 +32,12 @@ export const createRoom = async (req, res) => {
 //API lấy tất cả phòng
 export const getRooms = async (req, res) => {
     try {
-        const rooms = await Room.find({isAvailable: true}).sort({createdAt: -1});
+        const {bedType} = req.query;
+        let filter = {isAvailable: true};
+        if (bedType) {
+            filter.bedType = bedType;
+        }
+        const rooms = await Room.find(filter).sort({createdAt: -1});
         res.json({success: true, rooms});
     } catch (error) {
         res.json({success: false, message: error.message});
@@ -139,7 +145,7 @@ export const editRoom = async (req, res) => {
 //API update phòng 
 export const updateRoom = async (req, res) => {
     try {
-        const { roomType, pricePerNight, amenities } = req.body;
+        const { roomType, pricePerNight, amenities, bedType } = req.body;
         const roomId = req.params.roomId;
 
         // Lấy phòng
@@ -174,6 +180,7 @@ export const updateRoom = async (req, res) => {
         room.pricePerNight = +pricePerNight;
         room.amenities = JSON.parse(amenities);
         room.images = finalImages;
+        room.bedType = bedType;
 
         await room.save();
 

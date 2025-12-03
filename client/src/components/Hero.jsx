@@ -1,14 +1,19 @@
-import React from 'react'
+import React, {useState} from 'react'
 import { assets } from '../assets/assets'
 import { useAppContext } from '../context/AppContext'
 
 const Hero = () => {
+    const [bedType, setBedType] = useState("");
 
     const {navigate, axios, getToken} = useAppContext();
 
     const onSearch = async (e) => {
         e.preventDefault();
-        navigate(`/rooms?`)
+        const params = new URLSearchParams();
+        if (bedType) {
+            params.append('bedType', bedType);
+        }
+        navigate(`/rooms?${params.toString()}`)
     }
 
   return (
@@ -34,6 +39,21 @@ const Hero = () => {
                     ))}
                 </datalist>
             </div> */}
+
+            <div className='flex md:flex-col max-md:gap-2 max-md:items-center'>
+                <label htmlFor="bedType">Loại giường</label>
+                <select
+                    id="bedType"
+                    value={bedType}
+                    onChange={(e) => setBedType(e.target.value)}
+                    className="rounded border border-gray-200 px-3 py-1.5 mt-1.5 text-sm outline-none"
+                >
+                    <option className='text-black' value="">Tất cả</option>
+                    <option className='text-black' value="Giường đơn">Giường đơn</option>
+                    <option className='text-black' value="Giường đôi">Giường đôi</option>
+                    <option className='text-black' value="Giường cỡ lớn">Giường cỡ lớn</option>
+                </select>
+            </div>
 
             <div>
                 <div className='flex items-center gap-2'>

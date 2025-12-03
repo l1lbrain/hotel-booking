@@ -1,10 +1,11 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { facilityIcons } from '../assets/assets'
 import RatingStar from '../components/RatingStar';
 import Pagination from '../components/Pagination';
 import { useAppContext } from '../context/AppContext';
-// import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useMemo } from 'react';    
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const CheckBox = ({label, selected = false, onChange = () => {}}) => {
     return (
@@ -25,9 +26,20 @@ const RadioButton = ({label, selected = false, onChange = () => {}}) => {
 }
 
 const RoomList = () => {
-    // const searchParams = useSearchParams();
+    const [searchParams] = useSearchParams();
 
-    const {rooms, navigate, currency} = useAppContext();
+    const {rooms, navigate, currency, fetchRoomsData} = useAppContext();
+    const bedType = searchParams.get('bedType') || "";
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            await fetchRoomsData(bedType ? `bedType=${encodeURIComponent(bedType)}` : "");
+            setLoading(false);
+        };
+        fetchData();
+    }, [bedType]);
 
     const [openFilter, setOpenFilter] = useState(false);
     const [selectedFilters, setSelectedFilters] = useState({
@@ -103,6 +115,10 @@ const RoomList = () => {
     const lastRoomIndex = currentPage * roomsPerPage;
     const firstRoomIndex = lastRoomIndex - roomsPerPage;
     const currentRooms = filteredRooms.slice(firstRoomIndex, lastRoomIndex);
+
+    if (loading) {
+        return <LoadingSpinner fullScreen={true} />;
+    }
 
   return (
     <div className='flex flex-col lg:flex-row items-start justify-between pt-28 md:pt-35 px-4 md:px-16 lg:px-24'>

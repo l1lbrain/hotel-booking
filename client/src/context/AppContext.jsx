@@ -10,7 +10,7 @@ axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-    const [loading, setLoading] = useState(false);
+    // const [loading, setLoading] = useState(false);
 
     const currency = import.meta.env.VITE_CURRENCY || '₫';
     const navigate = useNavigate();
@@ -21,10 +21,13 @@ export const AppProvider = ({ children }) => {
     const [showDashboard, setShowDashboard] = useState(false);
     const [rooms, setRooms] = useState([]);
 
-    const fetchRoomsData = async () => {
+    const fetchRoomsData = async (query="") => {
         try {
-            setLoading(true);
-            const {data} = await axios.get('/api/rooms');
+            // setLoading(true);
+            
+            const url = query ? `/api/rooms?${query}` : '/api/rooms';
+
+            const {data} = await axios.get(url);
             if (data.success) {
                 setRooms(data.rooms);
             } else {
@@ -33,7 +36,7 @@ export const AppProvider = ({ children }) => {
         } catch (error) {
             toast.error(error.message);
         } finally {
-            setLoading(false);
+            // setLoading(false);
         }
     }
 
@@ -79,11 +82,12 @@ export const AppProvider = ({ children }) => {
         setShowDashboard,
         rooms,
         setRooms,
+        fetchRoomsData,
     };
 
-    if (loading) {
-        return <LoadingSpinner fullScreen={true} />
-    }
+    // if (loading) {
+    //     return <LoadingSpinner fullScreen={true} />
+    // }
     return (
         <AppContext.Provider value={value}>
             {children}

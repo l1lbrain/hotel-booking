@@ -18,11 +18,11 @@ const AddRoom = () => {
     const [inputs, setInputs] = useState({
         roomType: "",
         pricePerNight: 0,
+        bedType: "",
         amenities: {
             'Wifi Miễn Phí' : false,
             'Bữa Sáng Miễn Phí' : false,
             'Phục Vụ Tận Phòng' : false,
-            // 'View Núi' : false,
             'Bể Bơi' : false,
             'Áo choàng tắm' : false,
             'Máy sấy tóc' : false,
@@ -37,14 +37,15 @@ const AddRoom = () => {
 
     const onSubmitHandler = async (e) => {
         e.preventDefault();
-        if (!inputs.roomType || !inputs.pricePerNight || !inputs.amenities || !Object.values(images).some(image => image)) {
+        if (!inputs.roomType || !inputs.pricePerNight || !inputs.amenities || !inputs.bedType || !Object.values(images).some(image => image)) {
             toast.error("Vui lòng điền đầy đủ thông tin phòng và tải lên ít nhất một ảnh.");
             return;
         }   
         setLoading(true);
         try {
             const formData = new FormData();
-            formData.append('roomType', inputs.roomType); 
+            formData.append('roomType', inputs.roomType);
+            formData.append('bedType', inputs.bedType); 
             formData.append('pricePerNight', inputs.pricePerNight);
             const amenities = Object.keys(inputs.amenities).filter(key => inputs.amenities[key]);
             formData.append('amenities', JSON.stringify(amenities));
@@ -67,7 +68,6 @@ const AddRoom = () => {
                         'Wifi Miễn Phí' : false,
                         'Bữa Sáng Miễn Phí' : false,
                         'Phục Vụ Tận Phòng' : false,
-                        // 'View Núi' : false,  
                         'Bể Bơi' : false,
                         'Áo choàng tắm' : false,
                         'Máy sấy tóc' : false,
@@ -112,6 +112,19 @@ const AddRoom = () => {
                     <option value="Family Room">Family Room</option>
                     <option value="Premium Deluxe">Premium Deluxe</option>
                     <option value="Deluxe Room">Deluxe Room</option>
+                </select>
+            </div>
+            <div className='flex-1 max-w-48'>
+                <p className='text-gray-800 mt-4'>Loại giường</p>
+                <select 
+                    value={inputs.bedType} 
+                    onChange={(e) => setInputs({...inputs, bedType: e.target.value})}
+                    className='border opacity-70 border-gray-300 mt-1 rounded p-2 w-full'
+                >
+                    <option value="" disabled>Chọn loại giường</option>
+                    <option value="Giường đơn">Giường đơn</option>
+                    <option value="Giường đôi">Giường đôi</option>
+                    <option value="Giường cỡ lớn">Giường cỡ lớn</option>
                 </select>
             </div>
             <div className='mt-4 text-gray-800'>
