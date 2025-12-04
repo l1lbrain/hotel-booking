@@ -129,10 +129,10 @@ const RoomList = () => {
                 <p className='text-sm md:text-base text-gray-500/90 mt-2 max-w-174'>Khám phá tất cả các phòng của chúng tôi</p>
             </div>
             {currentRooms.map((room) => (
-                <div key={room.id} className='flex flex-col md:flex-row items-start py-10 gap-6 border-b border-gray-300 last:pb-30 last:border-0'>
+                <div key={room.id} className='flex flex-col md:flex-row justify-around items-start py-10 gap-6 border-b border-gray-300 last:pb-30 last:border-0'>
                     <img onClick={() => {navigate(`/rooms/${room._id}`); scrollTo(0,0)}} src={room.images[0]} alt="room-img" title="Xem chi tiết phòng" className='max-h-65 md:w-1/2 rounded-xl shadow-lg object-cover cursor-pointer'/>
                     <div className='md:w-1/2 flex flex-col gap-2'>
-                        <p onClick={() => {navigate(`/rooms/${room._id}`); scrollTo(0,0)}} className='text-gray-800 text-3xl font-playfair cursor-pointer'>{room.roomType}</p>
+                        <p onClick={() => {navigate(`/rooms/${room._id}`); scrollTo(0,0)}} className='text-gray-800 text-3xl font-playfair cursor-pointer'>{room.roomType}<span className='text-lg'> ({room.bedType})</span></p>
                         <div className='md:w-max flex flex-col gap-2'>
                             <div className='flex items-center'>
                                 <RatingStar rating={Math.round(4.2)}/>

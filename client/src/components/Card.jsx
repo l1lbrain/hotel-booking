@@ -16,8 +16,8 @@ const Card = ({room}) => {
             </div>
           </div>
           <div className='flex items-center gap-x-1 py-1'>
-            <img /* src={room.roomType == "Double Bed" ? assets.bedIcon : assets.singleBedIcon} */ src={assets.freeWifiIcon} alt="bed-icon" className='h-4'/>
-            <p className='text-md'>{room.amenities[0]}</p>
+            <img src={room.bedType === "Giường đơn" ? assets.singleBedIcon : assets.bedIcon} /*src={assets.bedIcon}*/ alt="bed-icon" className='h-4'/>
+            <p className='text-md'>{room.bedType}</p>
           </div>
           <div className='flex items-center justify-between mt-2'>
             <p className='text-black'>Từ <span className='text-xl text-gray-800'>{room.pricePerNight.toLocaleString("vi-VN")}₫</span></p>

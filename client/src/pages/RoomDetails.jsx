@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 // import { useState } from 'react';
-import { roomCommonData, roomsDummyData } from '../assets/assets';
+import { roomCommonData} from '../assets/assets';
 import RatingStar from '../components/RatingStar';
 import { useAppContext } from '../context/AppContext';
 import toast from 'react-hot-toast';
@@ -70,7 +70,7 @@ const RoomDetails = () => {
     <div className='py-28 md:py-35 px-4 md:px-16 lg:px-24 xl:px-32'>
       {/* Tên phòng */}
         <div className='flex flex-col md:flex-row items-start md:items-center gap-2'>
-            <h1 className='text-3xl md:text-4xl font-playfair'>{room.roomType} <span className='text-sm'>({room.roomType})</span></h1>
+            <h1 className='text-3xl md:text-4xl font-playfair'>{room.roomType} <span className='text-lg'>({room.bedType})</span></h1>
             <p className='text-xs py-1.5 px-3 text-white bg-orange-500 rounded-full'>20% OFF</p>
         </div>
 

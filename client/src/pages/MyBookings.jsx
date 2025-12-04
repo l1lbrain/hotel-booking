@@ -3,11 +3,30 @@ import Title from '../components/Title'
 import { assets } from '../assets/assets'
 import { useAppContext } from '../context/AppContext'
 import toast from 'react-hot-toast'
+import { useLocation } from 'react-router-dom'
 
 const MyBookings = () => {
 
     const {axios, getToken, user} = useAppContext();
     const [bookings, setBookings] = useState([]);
+
+    const location = useLocation();
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const message = params.get("message");
+
+        if (message) {
+        // URLSearchParams.get() đã decode, dùng trực tiếp
+        toast.success(message);
+
+        // Xóa chỉ param 'message' khỏi URL (giữ các params khác nếu có)
+        params.delete("message");
+        const newSearch = params.toString();
+        const newPath = `${location.pathname}${newSearch ? `?${newSearch}` : ""}`;
+        window.history.replaceState(null, "", newPath);
+        }
+    }, [location]);
+    
 
     const fetchUserBookings = async () => {
         try {
@@ -22,18 +41,36 @@ const MyBookings = () => {
         }
     }
 
+    // const handlePayment = async (bookingId) => {
+    //     try {
+    //         const { data } = await axios.post('/api/bookings/stripe-payment', {bookingId}, {headers: {Authorization: `Bearer ${await getToken()}`}})
+    //         if (data.success) {
+    //             window.location.href = data.url
+    //         } else {
+    //             toast.error(data.message)
+    //         }
+    //     } catch (error) {
+    //         toast.error(error.message)
+    //     }
+    // }
+
     const handlePayment = async (bookingId) => {
-        try {
-            const { data } = await axios.post('/api/bookings/stripe-payment', {bookingId}, {headers: {Authorization: `Bearer ${await getToken()}`}})
-            if (data.success) {
-                window.location.href = data.url
-            } else {
-                toast.error(data.message)
-            }
-        } catch (error) {
-            toast.error(error.message)
+    try {
+        const { data } = await axios.post('/api/bookings/vnpay-payment', 
+            { bookingId },
+            { headers: { Authorization: `Bearer ${await getToken()}` } }
+        );
+
+        if (data.success) {
+            window.location.href = data.paymentUrl; // redirect sang VNPay
+        } else {
+            toast.error(data.message);
         }
+    } catch (error) {
+        toast.error(error.message);
     }
+};
+
 
     useEffect(() => {
         if (user) {
@@ -61,7 +98,7 @@ const MyBookings = () => {
                 <div className='flex flex-col md:flex-row'>
                     <img src={booking.room.images[0]} alt="room-image" className='min-md:w-44 rounded shadow object-cover'/>
                     <div className='flex flex-col gap-1.5 max-md:mt-3 min-md:ml-4'>
-                        <p className='font-playfair text-2xl'>{booking.room.roomType}<span className='text-sm'> ({booking.room.roomType})</span></p>
+                        <p className='font-playfair text-2xl'>{booking.room.roomType}<span className='text-sm'> ({booking.room.bedType})</span></p>
                         <div className='flex items-center gap-1 text-sm text-gray-500'>
                             <img src={assets.locationIcon} alt="location-icon"/><span>D8 Giảng Võ, Phường Giảng Võ, Hà Nội</span>
                         </div>

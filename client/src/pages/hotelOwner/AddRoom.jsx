@@ -112,6 +112,13 @@ const AddRoom = () => {
                     <option value="Family Room">Family Room</option>
                     <option value="Premium Deluxe">Premium Deluxe</option>
                     <option value="Deluxe Room">Deluxe Room</option>
+                    <option value="Deluxe Suite">Deluxe Suite</option>
+                    <option value="Presidential Room">Presidential Room</option>
+                    <option value="Royal Room">Royal Room</option>
+                    <option value="Senator Suite">Senator Suite</option>
+                    <option value="Club Suite">Club Suite</option>
+                    <option value="Club Room">Club Room</option>
+                    
                 </select>
             </div>
             <div className='flex-1 max-w-48'>

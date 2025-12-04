@@ -13,6 +13,7 @@
   "description": "",
   "dependencies": {
     "@clerk/express": "^1.7.48",
+    "axios": "^1.13.2",
     "cloudinary": "^2.8.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
@@ -22,7 +23,8 @@
     "nodemailer": "^7.0.10",
     "resend": "^6.5.2",
     "stripe": "^20.0.0",
-    "svix": "^1.81.0"
+    "svix": "^1.81.0",
+    "vnpay": "^2.4.4"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"

@@ -181,42 +181,42 @@ export const confirmBooking = async (req, res) => {
     }
 }
 
-export const stripePayment = async (req, res) => {
-    try {
-        const {bookingId} = req.body;
-        const booking = await Booking.findById(bookingId);
-        const roomData = await Room.findById(booking.room);
-        const totalPrice = booking.totalPrice;
-        const { origin } = req.headers;
+// export const stripePayment = async (req, res) => {
+//     try {
+//         const {bookingId} = req.body;
+//         const booking = await Booking.findById(bookingId);
+//         const roomData = await Room.findById(booking.room);
+//         const totalPrice = booking.totalPrice;
+//         const { origin } = req.headers;
         
-        const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
+//         const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
 
-        const line_items = [
-            {
-                price_data: {
-                    currency: "vnd",
-                    product_data: {
-                        name: roomData.roomType
-                    },
-                    unit_amount: totalPrice 
-                },
-                quantity: 1,
-            }
-        ]
-        // Create checkout session
-        const session = await stripeInstance.checkout.sessions.create({
-            line_items,
-            mode: "payment",
-            success_url: `${origin}/loader/my-bookings`,
-            cancel_url: `${origin}/my-bookings`,
-            metadata: {
-                bookingId,
-            }
-        })
-        res.json({success: true, url: session.url})
+//         const line_items = [
+//             {
+//                 price_data: {
+//                     currency: "vnd",
+//                     product_data: {
+//                         name: roomData.roomType
+//                     },
+//                     unit_amount: totalPrice 
+//                 },
+//                 quantity: 1,
+//             }
+//         ]
+//         // Create checkout session
+//         const session = await stripeInstance.checkout.sessions.create({
+//             line_items,
+//             mode: "payment",
+//             success_url: `${origin}/loader/my-bookings`,
+//             cancel_url: `${origin}/my-bookings`,
+//             metadata: {
+//                 bookingId,
+//             }
+//         })
+//         res.json({success: true, url: session.url})
 
-    } catch (error) {
-        console.log(error)
-        res.json({success: false, message: "Thanh toán thất bại"})
-    }
-}
+//     } catch (error) {
+//         console.log(error)
+//         res.json({success: false, message: "Thanh toán thất bại"})
+//     }
+// }
