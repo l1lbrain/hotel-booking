@@ -9,7 +9,7 @@ import { useEffect } from 'react';
 
 const ListRoom = () => {
     const [rooms, setRooms] = useState([])
-    const {axios, getToken, user, isAdmin, isLoaded, currency} = useAppContext();
+    const {axios, getToken, isAdmin, isLoaded, currency} = useAppContext();
 
     // Lấy danh sách phòng 
     const fetchRooms = async () => {
@@ -47,17 +47,26 @@ const ListRoom = () => {
 
     // Xóa phòng
     const handleDelete = async (roomId) => {
-        const confirm = window.confirm("Bạn có chắc chắn muốn xóa phòng này không?");
-        if (!confirm) return;
         try {
-            const {data} = await axios.delete(`/api/rooms/delete-room/${roomId}`, {headers: {
+            // Kiểm tra xem phòng có thể xóa không
+            const { data } = await axios.get(`/api/rooms/check-delete/${roomId}`, {
+                headers: { Authorization: `Bearer ${await getToken()}` }
+            });
+            if (!data.success) {
+                return toast.error(data.message);
+            }
+
+            // Thực hiện xóa phòng
+            const confirm = window.confirm("Phòng có thể xóa. Bạn có chắc chắn muốn xóa phòng này không?");
+            if (!confirm) return;
+            const deleteResponse = await axios.delete(`/api/rooms/delete-room/${roomId}`, {headers: {
                 Authorization: `Bearer ${await getToken()}`
             }});
-            if (data.success) {
-                toast.success(data.message);
+            if (deleteResponse.data.success) {
+                toast.success(deleteResponse.data.message);
                 fetchRooms();
             } else {
-                toast.error(data.message);
+                toast.error(deleteResponse.data.message);
             }
         } catch (error) {
             toast.error(error.message);

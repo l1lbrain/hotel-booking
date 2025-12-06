@@ -7,6 +7,8 @@ import { useSearchParams } from 'react-router-dom';
 import { useMemo } from 'react';    
 import LoadingSpinner from '../components/LoadingSpinner';
 
+
+
 const CheckBox = ({label, selected = false, onChange = () => {}}) => {
     return (
         <label className='flex gap-3 items-center cursor-pointer mt-2 text-sm'>
@@ -30,16 +32,22 @@ const RoomList = () => {
 
     const {rooms, navigate, currency, fetchRoomsData} = useAppContext();
     const bedType = searchParams.get('bedType') || "";
+    const checkInDate = searchParams.get("checkInDate") || "";
+    const checkOutDate = searchParams.get("checkOutDate") || "";
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
-            await fetchRoomsData(bedType ? `bedType=${encodeURIComponent(bedType)}` : "");
+            const query = new URLSearchParams();
+            if (bedType) query.append("bedType", bedType);
+            if (checkInDate) query.append("checkInDate", checkInDate);
+            if (checkOutDate) query.append("checkOutDate", checkOutDate);
+            await fetchRoomsData(query.toString());
             setLoading(false);
         };
         fetchData();
-    }, [bedType]);
+    }, [bedType, checkInDate, checkOutDate]);
 
     const [openFilter, setOpenFilter] = useState(false);
     const [selectedFilters, setSelectedFilters] = useState({
@@ -51,8 +59,16 @@ const RoomList = () => {
     const [currentPage, setCurrentPage] = useState(1);
     // const [roomsPerPage, setRoomsPerPage] = useState(4);
 
-    const roomTypes = ["Premium Deluxe", "Deluxe Room", "Family Room", "Luxury Room"];
-    const priceRanges = [`0 - 500000`, "500000 - 1000000", "1000000 - 2000000", "2000000 - 5000000"];
+    // const roomTypes = ["Premium Deluxe", "Deluxe Room", "Family Room", "Luxury Room"];
+    const roomTypes = ["Giường đơn", "Giường đôi", "Giường cỡ lớn"];
+    // const priceRanges = [`0 - 500000`, "500000 - 2000000", "2000000 - 5000000", "2000000 - 5000000"];
+    // const priceRanges = [`0 - 500000`, "500000 - 2000000", "2000000 - 5000000", "5000000+"];
+    const priceRanges = [
+        { label: "0 - 500.000", value: "0 - 500000" },
+        { label: "500.000 - 2.000.000", value: "500000 - 2000000" },
+        { label: "2.000.000 - 5.000.000", value: "2000000 - 5000000" },
+        { label: "Trên 5.000.000", value: "5000000+" },
+    ];
     const sortOptions = ["Giá thấp đến cao", "Giá cao đến thấp", "Mới nhất"];
 
     const handleFilterChange = (checked, value, type) => {
@@ -72,12 +88,21 @@ const RoomList = () => {
     } 
 
     const matchingRoomsType = (room) => {
-        return selectedFilters.roomType.length == 0 || selectedFilters.roomType.includes(room.roomType);
+        return selectedFilters.roomType.length == 0 || selectedFilters.roomType.includes(room.bedType);
     }
 
     const matchingPriceRange = (room) => {
         return selectedFilters.priceRange.length === 0 || selectedFilters.priceRange.some((range) => {
-            const [min, max] = range.split(' - ').map(Number);
+            if (typeof range !== "string") return false;
+            if (range.endsWith("+")) {
+                const min = Number(range.replace("+", ""));
+                return room.pricePerNight > min;
+            }
+
+            const parts = range.split(" - ");
+            if (parts.length !== 2) return false;
+            
+            const [min, max] = parts.map(Number);
             return room.pricePerNight >= min && room.pricePerNight <= max;
         })
     }
@@ -179,7 +204,7 @@ const RoomList = () => {
                 <div className='px-5 pt-5'>
                     <p className='font-medium text-gray-800 pb-2'>Khoảng Giá</p>
                     {priceRanges.map((range, index) => (
-                        <CheckBox key={index} label={`${range}${currency}`} selected={selectedFilters.priceRange.includes(range)} onChange={(checked) => handleFilterChange(checked, range, 'priceRange')}/>
+                        <CheckBox key={index} label={`${range.label}${currency}`} selected={selectedFilters.priceRange.includes(range.value)} onChange={(checked) => handleFilterChange(checked, range.value, 'priceRange')}/>
                     ))}
                 </div>
                 <div className='px-5 pt-5 pb-7'>

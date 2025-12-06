@@ -6,7 +6,7 @@ const Card = ({room}) => {
   const rating = ((Math.random() * 0.5) + 4.5).toFixed(1);
   return (
     <Link to={'/rooms/' + room._id} onClick={() => scrollTo(0, 0)} key={room.id} className='relative max-w-70 w-full rounded-xl overflow-hidden bg-white text-gray-500/90 shadow-lg' >
-        <img src={room.images[0]} alt="" />
+        <img src={room.images[0]} alt="" className='object-cover aspect-[5/3]'/>
         {rating >= 4.8 && <p className='font-inter px-3 py-1 absolute top-3 left-3 text-xs bg-white text-gray-800 font-medium rounded-full'>Tuyệt vời</p>}
         <div className='p-4 pt-5'>
           <div className='flex items-center justify-between'>

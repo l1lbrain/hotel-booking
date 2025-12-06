@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from 'cloudinary';
 import Room from '../models/Room.js';
+import Booking from '../models/Booking.js';
 
 //API tạo phòng mới
 export const createRoom = async (req, res) => {
@@ -29,15 +30,36 @@ export const createRoom = async (req, res) => {
     }
 };
 
-//API lấy tất cả phòng
+//API lấy tất cả phòng (có thể lọc theo loại giường hoặc ngày nhận/trả phòng)
 export const getRooms = async (req, res) => {
     try {
-        const {bedType} = req.query;
+        const {bedType, checkInDate, checkOutDate} = req.query;
         let filter = {isAvailable: true};
+
+        // Lọc theo loại giường nếu có
         if (bedType) {
             filter.bedType = bedType;
         }
-        const rooms = await Room.find(filter).sort({createdAt: -1});
+        let rooms = await Room.find(filter).sort({createdAt: -1});
+
+        // Lọc theo ngày nhận/trả phòng nếu có
+        if (checkInDate && checkOutDate) {
+
+            // Lấy tất cả booking trong khoảng thời gian khách chọn
+            const booked = await Booking.find({
+                status: { $in: ["Đang chờ", "Đã thanh toán"] },
+                $and: [
+                    { checkInDate: { $lte: checkOutDate } },
+                    { checkOutDate: { $gte: checkInDate } }
+                ]
+            });
+
+            // Danh sách phòng đã được đặt
+            const bookedRoomIds = booked.map(b => b.room.toString());
+
+            // Lọc các phòng KHÔNG nằm trong danh sách booked
+            rooms = rooms.filter(room => !bookedRoomIds.includes(room._id.toString()));
+        }
         res.json({success: true, rooms});
     } catch (error) {
         res.json({success: false, message: error.message});
@@ -84,14 +106,30 @@ export const toggleRoomAvailability = async (req, res) => {
     }
 };
 
+//API Kiểm tra phòng trước khi xóa
+export const checkRoomCanDelete = async (req, res) => {
+    try {
+        const {roomId} = req.params;
+        const existingBooking = await Booking.findOne({ room: roomId });
+        if (existingBooking) {
+            return res.json({success: false, message: "Không thể xóa phòng vì đã có lịch sử đặt phòng"
+            });
+        }
+        res.json({success: true,message: "Phòng có thể xóa"});
+    } catch (error) {
+        res.json({ success: false, message: error.message });
+    }
+};
+
 //API xóa phòng
 export const deleteRoom = async (req, res) => {
     try {
         const {roomId} = req.params;
         console.log(roomId);
+        // Xóa phòng nếu không có đơn đặt phòng hoạt động
         const deletedRoom = await Room.findByIdAndDelete(roomId);
         if (!deletedRoom) {
-            return res.json({success: false, message: "Xóa phòng thất bại"});
+            return res.json({success: false, message: "Xóa phòng thất bại. Phòng không tồn tại"});
         }
         res.json({success: true, message: "Xóa phòng thành công"});
     } catch (error) {
@@ -100,47 +138,47 @@ export const deleteRoom = async (req, res) => {
 };
 
 //API chỉnh sửa phòng (chưa làm)
-export const editRoom = async (req, res) => {
-    try {
-        const roomId = req.params.id;
-        const {roomType, pricePerNight, amenities} = req.body;
+// export const editRoom = async (req, res) => {
+//     try {
+//         const roomId = req.params.id;
+//         const {roomType, pricePerNight, amenities} = req.body;
 
-        // Lấy phòng hiện tại (để không bị mất ảnh cũ nếu user không upload ảnh mới)
-        const currentRoom = await Room.findById(roomId);
-        if (!currentRoom) {
-            return res.json({ success: false, message: "Không tìm thấy phòng" });
-        }
+//         // Lấy phòng hiện tại (để không bị mất ảnh cũ nếu user không upload ảnh mới)
+//         const currentRoom = await Room.findById(roomId);
+//         if (!currentRoom) {
+//             return res.json({ success: false, message: "Không tìm thấy phòng" });
+//         }
 
-        let images = currentRoom.images;
+//         let images = currentRoom.images;
 
-        // Nếu user upload ảnh mới → upload lên Cloudinary
-        if (req.files && req.files.length > 0) {
-            const uploadImages = req.files.map(async (file) => {
-                const response = await cloudinary.uploader.upload(file.path);
-                return response.secure_url;
-            });
-            // Đợi upload tất cả ảnh
-            images = await Promise.all(uploadImages);
-        }
+//         // Nếu user upload ảnh mới → upload lên Cloudinary
+//         if (req.files && req.files.length > 0) {
+//             const uploadImages = req.files.map(async (file) => {
+//                 const response = await cloudinary.uploader.upload(file.path);
+//                 return response.secure_url;
+//             });
+//             // Đợi upload tất cả ảnh
+//             images = await Promise.all(uploadImages);
+//         }
 
 
-        await Room.findByIdAndUpdate(
-            roomId,
-            {
-                roomType,
-                pricePerNight: +pricePerNight,
-                amenities: JSON.parse(amenities),
-                images, // sẽ dùng ảnh mới nếu user upload, còn không thì giữ nguyên ảnh cũ
-            },
-            { new: true } // trả về document mới sau update
-        );
+//         await Room.findByIdAndUpdate(
+//             roomId,
+//             {
+//                 roomType,
+//                 pricePerNight: +pricePerNight,
+//                 amenities: JSON.parse(amenities),
+//                 images, // sẽ dùng ảnh mới nếu user upload, còn không thì giữ nguyên ảnh cũ
+//             },
+//             { new: true } // trả về document mới sau update
+//         );
 
-        res.json({ success: true, message: "Cập nhật phòng thành công" });
-    } catch (error) {
-        console.log(error);
-        res.json({success: false, message: error.message});
-    }
-}
+//         res.json({ success: true, message: "Cập nhật phòng thành công" });
+//     } catch (error) {
+//         console.log(error);
+//         res.json({success: false, message: error.message});
+//     }
+// }
 
 //API update phòng 
 export const updateRoom = async (req, res) => {

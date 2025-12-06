@@ -25,6 +25,7 @@ const EditRoom = () => {
     const [inputs, setInputs] = useState({
         roomType: "",
         pricePerNight: 0,
+        bedType: "",
         amenities: {
             'Wifi Miễn Phí': false,
             'Bữa Sáng Miễn Phí': false,
@@ -67,6 +68,7 @@ const EditRoom = () => {
                 setInputs({
                     roomType: room.roomType,
                     pricePerNight: room.pricePerNight,
+                    bedType: room.bedType,
                     amenities: updatedAmenities
                 });
 
@@ -97,6 +99,7 @@ const EditRoom = () => {
             const formData = new FormData();
             formData.append("roomType", inputs.roomType);
             formData.append("pricePerNight", inputs.pricePerNight);
+            formData.append("bedType", inputs.bedType);
 
             // amenities
             const amenities = Object.keys(inputs.amenities).filter(key => inputs.amenities[key]);
@@ -194,6 +197,20 @@ const EditRoom = () => {
                         <option value="Family Room">Family Room</option>
                         <option value="Premium Deluxe">Premium Deluxe</option>
                         <option value="Deluxe Room">Deluxe Room</option>
+                    </select>
+                </div>
+
+                <div className='flex-1 max-w-48'>
+                    <p className='text-gray-800 mt-4'>Loại giường</p>
+                    <select 
+                        value={inputs.bedType}
+                        onChange={(e) => setInputs({...inputs, bedType: e.target.value})}
+                        className='border opacity-70 border-gray-300 mt-1 rounded p-2 w-full'
+                    >
+                        <option value="" disabled>Chọn loại giường</option>
+                        <option value="Giường đơn">Giường đơn</option>
+                        <option value="Giường đôi">Giường đôi</option>
+                        <option value="Giường cỡ lớn">Giường cỡ lớn</option>
                     </select>
                 </div>
 
