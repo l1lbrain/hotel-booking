@@ -17,6 +17,11 @@ const RoomDetails = () => {
     const [message, setMessage] = useState("");
     const [isAvailable, setIsAvailable] = useState(false);
 
+    const [showInfoPopup, setShowInfoPopup] = useState(false);
+    const [phone, setPhone] = useState("");
+    const [address, setAddress] = useState("");
+    const [dateOfBirth, setDateOfBirth] = useState("");
+
     const checkAvailability = async () => {
       try {
         if (checkInDate >= checkOutDate) {
@@ -41,24 +46,81 @@ const RoomDetails = () => {
     }
 
     const onSubmitHandler = async (e) => {
-      try {
-        e.preventDefault();
-        if (!isAvailable) {
-          return checkAvailability();
-        } else {
-          const {data} = await axios.post('/api/bookings/book', {room: id, checkInDate, checkOutDate, guests, paymentMethod: "Thanh toán tại quầy"}, {headers: {Authorization: `Bearer ${await getToken()}`}})
-          if (data.success) {
-            toast.success(data.message);
-            navigate('/my-bookings');
-            scrollTo(0, 0);
-          } else {
-            toast.error(data.message);
+        try {
+            e.preventDefault();
+
+            if (!isAvailable) {
+              return checkAvailability();
+            }
+          //Kiểm tra thông tin user trước khi đặt phòng
+          const check = await axios.get(`/api/user/check-info`, {headers: {Authorization: `Bearer ${await getToken()}`}});
+
+          if (!check.data.success) {
+          //Thiếu thông tin → bật popup
+            setShowInfoPopup(true);
+            return;
           }
+
+          //Đủ thông tin → đặt phòng như cũ
+          const {data} = await axios.post(
+            '/api/bookings/book',
+            {
+              room: id,
+              checkInDate,
+              checkOutDate,
+              guests,
+              paymentMethod: "Thanh toán tại quầy"
+            },
+            {headers: {Authorization: `Bearer ${await getToken()}`}}
+          );
+
+          if (data.success) {
+              toast.success(data.message);
+              navigate('/my-bookings');
+              scrollTo(0, 0);
+          } else {
+              toast.error(data.message);
+          }
+        } catch (error) {
+            toast.error(error.message);
+        }
+    }
+
+    const handleSaveUserInfo = async () => {
+      try {
+        const res = await axios.patch("/api/user/update-info", {
+          phone,
+          address,
+          dateOfBirth
+        } , { headers: { Authorization: `Bearer ${await getToken()}`}});
+
+        if (res.data.success) {
+          setShowInfoPopup(false);
+          toast.success("Đã cập nhật thông tin. Vui lòng đặt phòng");
         }
       } catch (error) {
-            toast.error(error.message);
+        toast.error(error.message);
       }
-    }
+    };
+    // const onSubmitHandler = async (e) => {
+    //   try {
+    //     e.preventDefault();
+    //     if (!isAvailable) {
+    //       return checkAvailability();
+    //     } else {
+    //       const {data} = await axios.post('/api/bookings/book', {room: id, checkInDate, checkOutDate, guests, paymentMethod: "Thanh toán tại quầy"}, {headers: {Authorization: `Bearer ${await getToken()}`}})
+    //       if (data.success) {
+    //         toast.success(data.message);
+    //         navigate('/my-bookings');
+    //         scrollTo(0, 0);
+    //       } else {
+    //         toast.error(data.message);
+    //       }
+    //     }
+    //   } catch (error) {
+    //         toast.error(error.message);
+    //   }
+    // }
 
     useEffect(() => {
         const room = rooms.find(room => room._id == id);
@@ -67,7 +129,58 @@ const RoomDetails = () => {
         console.log(id)
     }, [rooms]);
   return room &&(
-    <div className='py-28 md:py-35 px-4 md:px-16 lg:px-24 xl:px-32'>
+  <>
+    {showInfoPopup && (
+  <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+    <div className="bg-white rounded-lg p-6 w-96 shadow-lg relative">
+
+      <h2 className="text-xl font-semibold mb-4">
+        Bổ sung thông tin
+      </h2>
+
+      <input
+        type="text"
+        placeholder="Số điện thoại"
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+        className="border w-full p-2 mb-3 rounded"
+      />
+
+      <input
+        type="text"
+        placeholder="Địa chỉ"
+        value={address}
+        onChange={(e) => setAddress(e.target.value)}
+        className="border w-full p-2 mb-3 rounded"
+      />
+
+      <input
+        type="date"
+        value={dateOfBirth}
+        onChange={(e) => setDateOfBirth(e.target.value)}
+        className="border w-full p-2 mb-4 rounded"
+      />
+
+      <div className="flex gap-3">
+        <button
+          className="w-1/2 bg-black text-white py-2 rounded hover:bg-black/90 cursor-pointer"
+          onClick={handleSaveUserInfo}
+        >
+          Xác nhận
+        </button>
+
+        <button
+          className="w-1/2 bg-gray-300 text-black py-2 rounded hover:bg-gray-400 cursor-pointer"
+          onClick={() => setShowInfoPopup(false)}
+        >
+          Hủy
+        </button>
+      </div>
+
+    </div>
+  </div>
+)}
+  <div className='py-28 md:py-35 px-4 md:px-16 lg:px-24 xl:px-32'>
       {/* Tên phòng */}
         <div className='flex flex-col md:flex-row items-start md:items-center gap-2'>
             <h1 className='text-3xl md:text-4xl font-playfair'>{room.roomType} <span className='text-lg'>({room.bedType})</span></h1>
@@ -165,10 +278,10 @@ const RoomDetails = () => {
           </div>
         ))}
       </div>
-
-      
-
+    
     </div>
+  </>
+    
   )
 }
 

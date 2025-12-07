@@ -21,6 +21,8 @@ export const AppProvider = ({ children }) => {
     const [showDashboard, setShowDashboard] = useState(false);
     const [rooms, setRooms] = useState([]);
 
+    const [dbUser, setDbUser] = useState(null);
+
     const fetchRoomsData = async (query="") => {
         try {
             // setLoading(true);
@@ -59,8 +61,22 @@ export const AppProvider = ({ children }) => {
         }
     }
 
+    const fetchDbUser = async () => {
+        try {
+            const { data } = await axios.get('/api/user/profile', {
+                headers: { Authorization: `Bearer ${await getToken()}` }
+            });
+            if (data.success) {
+                setDbUser(data.user);
+            }
+        } catch (err) {
+            console.log(err);
+        }
+    };
+
     useEffect(() => {
         if (user) {
+            fetchDbUser();
             fetchUserRole();
         }
     }, [user]);
@@ -74,6 +90,8 @@ export const AppProvider = ({ children }) => {
         currency,
         navigate,
         user,
+        dbUser,
+        fetchDbUser,
         isLoaded,
         getToken,
         isAdmin,
