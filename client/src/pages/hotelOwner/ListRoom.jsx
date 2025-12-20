@@ -84,11 +84,13 @@ const ListRoom = () => {
     <div className='w-full'>
         <Title align="items-start!" font="font-inter text-4xl!" title="Danh sách phòng" description="Theo dõi và quản lý tình trạng các phòng nghỉ hiện có"/>
         <p className='text-gray-500 mt-8'>Danh sách phòng</p>
-        <div className='w-full max-w-4xl text-left border border-gray-300 rounded-lg max-h-80 overflow-y-scroll mt-3'>
+        <div className='w-full max-w-6xl text-left border border-gray-300 rounded-lg max-h-80 overflow-y-scroll mt-3'>
             <table className='w-full'>
                 <thead className='bg-gray-50'>
                     <tr>
-                        <th className='py-3 px-4 text-gray-800 font-medium w-36'>Tên phòng</th>
+                        <th className='py-3 px-4 text-gray-800 font-medium w-36'>Loại phòng</th>
+                        <th className='py-3 px-4 text-gray-800 font-medium w-26 text-center'>Số lượng</th>
+                        <th className='py-3 px-4 text-gray-800 font-medium w-20 text-center '>Trống</th>
                         <th className='py-3 px-4 text-gray-800 font-medium max-sm:hidden'>Các tiện nghi & đồ dùng thiết yếu</th>
                         <th className='py-3 px-4 text-gray-800 font-medium w-28'>Giá phòng</th>
                         <th className='py-3 px-4 text-gray-800 font-medium text-center w-40'>Hành động</th>
@@ -99,6 +101,12 @@ const ListRoom = () => {
                         <tr key={index} className=''>
                             <td className='py-3 px-4 text-gray-700 border-t border-gray-300'>
                                 {item.roomType}<span className='text-sm'> ({item.bedType})</span>
+                            </td>
+                            <td className='py-3 px-4 text-gray-700 border-t border-gray-300 text-center'>
+                                {item.quantity}
+                            </td>
+                            <td className='py-3 px-4 text-gray-700 border-t border-gray-300 text-center'>
+                                {item.quantity - item.bookedCount}
                             </td>
                             <td className='py-3 px-4 text-gray-700 border-t border-gray-300 max-sm:hidden'>
                                 {item.amenities.join(', ')}

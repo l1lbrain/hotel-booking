@@ -12,6 +12,7 @@ const roomSchema = new mongoose.Schema({
         enum: ["Giường đơn", "Giường đôi", "Giường cỡ lớn"], 
         required: true 
     },
+    quantity: { type: Number, required: true },
 }, {timestamps: true});
 
 const Room = mongoose.model("Room", roomSchema);

@@ -7,12 +7,12 @@ import toast from 'react-hot-toast'
 
 const Layout = () => {
 
-  const {isAdmin,isLoaded ,navigate} = useAppContext();
+  const {isAdmin,isLoaded, user ,navigate} = useAppContext();
 
   useEffect(() => {
     if (!isLoaded) return;
 
-    if (!isAdmin) {
+    if (!isAdmin || !user) {
       toast.error("Bạn không có quyền truy cập.");
       navigate('/');
     }

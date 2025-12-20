@@ -19,6 +19,7 @@ const AddRoom = () => {
         roomType: "",
         pricePerNight: 0,
         bedType: "",
+        quantity: 1,
         amenities: {
             'Wifi Miễn Phí' : false,
             'Bữa Sáng Miễn Phí' : false,
@@ -47,6 +48,7 @@ const AddRoom = () => {
             formData.append('roomType', inputs.roomType);
             formData.append('bedType', inputs.bedType); 
             formData.append('pricePerNight', inputs.pricePerNight);
+            formData.append('quantity', inputs.quantity);
             const amenities = Object.keys(inputs.amenities).filter(key => inputs.amenities[key]);
             formData.append('amenities', JSON.stringify(amenities));
 
@@ -92,7 +94,7 @@ const AddRoom = () => {
   return (
     <form onSubmit={onSubmitHandler}> 
         <Title align="items-start!" font="font-inter text-4xl!" title="Thêm phòng mới" description="Điền chính xác và đầy đủ thông tin về phòng như giá cả, tiện nghi,..." />
-        {/* Upload Images */}
+        {/* Tải ảnh phòng */}
         <p className='text-gray-800 mt-10'>Ảnh phòng</p>
         <div className='grid grid-cols-2 sm:flex gap-4 my-2 flex-wrap'>
             {Object.keys(images).map((key) => (
@@ -136,7 +138,22 @@ const AddRoom = () => {
             </div>
             <div className='mt-4 text-gray-800'>
                 <p>Giá phòng (₫)</p>
-                <input type="number" placeholder='0' className='border border-gray-300 mt-1 rounded p-2 w-24' value={inputs.pricePerNight} onChange={(e) => setInputs({...inputs, pricePerNight: e.target.value})}/>
+                <input type="number" placeholder='0' className='border border-gray-300 mt-1 rounded p-2 w-28' value={inputs.pricePerNight} onChange={(e) => setInputs({...inputs, pricePerNight: e.target.value})}/>
+            </div>
+            <div className='mt-4 text-gray-800'>
+                <p>Số lượng phòng</p>
+                <input
+                    type="number"
+                    min="1"
+                    className='border border-gray-300 mt-1 rounded p-2 w-24'
+                    value={inputs.quantity}
+                    onChange={(e) =>
+                        setInputs({
+                            ...inputs,
+                            quantity: Number(e.target.value),
+                        })
+                    }
+                />
             </div>
         </div>
         

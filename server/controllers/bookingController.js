@@ -5,33 +5,25 @@ import stripe from "stripe";
 import { Resend } from "resend"
 
 //Kiểm tra phòng còn trống hay không
-// const checkAvailability = async ({checkInDate, checkOutDate, room}) => {
-//     try {
-//         const bookings = await Booking.find({
-//             room,
-//             checkInDate: { $lte: checkOutDate },
-//             checkOutDate: { $gte: checkInDate }
-//         })
-//         const isAvailable = bookings.length === 0;
-//         return isAvailable;
-//     } catch (error) {
-//         console.error(error.message);
-//     }
-// }
 
 const checkAvailability = async ({checkInDate, checkOutDate, room}) => {
     try {
+        const roomData = await Room.findById(room);
+        if (!roomData) return false;
+
         const bookings = await Booking.find({
             room,
             status: { $in: ["Đang chờ", "Đã thanh toán"] },
             $and: [
                 {checkInDate: { $lte: checkOutDate }},
-                {checkOutDate: { $gte: checkInDate }}
+                {checkOutDate: { $gt: checkInDate }}
             ]
             
         })
-        const isAvailable = bookings.length === 0;
-        return isAvailable;
+        const bookedCount = bookings.length;
+        return bookedCount < roomData.quantity;
+        // const isAvailable = bookings.length === 0;
+        // return isAvailable;
     } catch (error) {
         console.error(error.message);
     }
@@ -42,6 +34,9 @@ export const checkAvailabilityAPI = async (req, res) => {
     try {
         const {checkInDate, checkOutDate, room} = req.body;
         const isAvailable = await checkAvailability({checkInDate, checkOutDate, room});
+        if (!isAvailable) {
+            return res.json({ success: false, message: "Hết phòng trong khoảng thời gian này" });
+        }
         res.json({success: true, isAvailable});
     } catch (error) {
         console.error("Lỗi checkAvailabilityAPI:", error);
@@ -95,7 +90,7 @@ export const createBooking = async (req, res) => {
                 <p>Gửi ${req.user.username},</p>
                 <p>Cảm ơn bạn đã đặt phòng của chúng tôi. Đây là thông tin phòng của bạn:</p>
                 <ul>
-                    <li><strong>ID: ${booking._id}</strong></li>
+                    <li><strong>Mã đơn đặt phòng: ${booking._id}</strong></li>
                     <li><strong>Tên phòng: ${roomData.roomType}</strong></li>
                     <li><strong>Địa chỉ: D8 Giảng Võ, Phường Giảng Võ, Hà Nội</strong></li>
                     <li><strong>Ngày nhận phòng: ${booking.checkInDate.toLocaleDateString("vi-VN", options).replace(/^\w/, c => c.toUpperCase())}</strong></li>
@@ -104,6 +99,7 @@ export const createBooking = async (req, res) => {
                 </ul>
                 <p>Chúng tôi rất hân hạnh được chào đón bạn!</p>
                 <p>Nếu bạn muốn thay đổi bất cứ thông tin nào, hãy thoải mái liên hệ với chúng tôi.</p>
+                <p><span className="text-red-500">Lưu ý</span>: Trong trường hợp quý khách muốn thanh toán tại quầy (thanh tóa khi nhận phòng), vui lòng đến làm thủ tục nhận phòng đúng theo thời gian quý khách đã đặt. Nếu quá thời gian quy định, đơn đặt phòng có thể <span className="font-bold">bị hủy bỏ</span>.</p>
             `
 
         }
@@ -137,14 +133,61 @@ export const getUserBookings = async (req, res) => {
     }
 }
 
-//API lấy tất cả booking của owner GET /api/bookings/owner
+//API lấy các năm có booking GET /api/bookings/years
+export const getBookingYears = async (req, res) => {
+    try {
+        const years = await Booking.aggregate([
+            {
+                $group: {
+                    _id: { $year: "$checkInDate" }
+                }
+            },
+            { $sort: { _id: 1 } }
+        ]);
+
+        const yearList = years.map(item => item._id);
+
+        res.json({success: true, years: yearList});
+    } catch (error) {
+        console.error(error);
+        res.json({ success: false, message: "Failed to fetch years" });
+    }
+};
+
+
+//API lấy tất cả booking của owner GET /api/bookings/hotel?month=...&year=...
 export const getOwnerBookings = async (req, res) => {
     try {
-        const bookings = await Booking.find({}).populate('room user').sort({createdAt: -1});
+        const { month, year } = req.query;
+
+        let filter = {};
+
+        if (month && year) {
+            const startDate = new Date(year, month - 1, 1);
+            const endDate = new Date(year, month, 1);
+
+            filter.checkInDate = {
+                $gte: startDate,
+                $lt: endDate
+            };
+        } else if (year) {
+            const startDate = new Date(year, 0, 1);
+            const endDate = new Date(Number(year) + 1, 0, 1);
+
+            filter.checkInDate = {
+                $gte: startDate,
+                $lt: endDate
+            };
+        } else if (month) {
+            filter.$expr = {
+                $eq: [{ $month: "$checkInDate" }, Number(month)]
+            };
+        }
+        
+        const bookings = await Booking.find(filter).populate('room user').sort({createdAt: -1});
         //Tổng đơn đặt phòng
         const totalBookings = bookings.length;
         //Tổng doanh thu
-        // const totalRevenue = bookings.reduce((total, booking) => total + booking.totalPrice, 0);
         const totalRevenue = bookings.reduce((total, booking) => booking.isPaid ? (total + booking.totalPrice) : total, 0);
         res.json({success: true, bookings, dashboardData: {totalBookings, totalRevenue}});
     } catch (error) {
@@ -171,7 +214,7 @@ export const cancelBooking = async (req, res) => {
 export const confirmBooking = async (req, res) => {
     try {
         const bookingId = req.params.id;
-        const booking = await Booking.findByIdAndUpdate(bookingId, {isPaid: true}, {new: true});
+        const booking = await Booking.findByIdAndUpdate(bookingId, {status: "Đã thanh toán", isPaid: true}, {new: true});
         if (!booking) {
             return res.status(404).json({ success: false, message: "Không tìm thấy đơn hàng" });
         }

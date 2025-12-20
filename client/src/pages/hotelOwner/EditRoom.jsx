@@ -26,6 +26,7 @@ const EditRoom = () => {
         roomType: "",
         pricePerNight: 0,
         bedType: "",
+        quantity: 1,
         amenities: {
             'Wifi Miễn Phí': false,
             'Bữa Sáng Miễn Phí': false,
@@ -69,6 +70,7 @@ const EditRoom = () => {
                     roomType: room.roomType,
                     pricePerNight: room.pricePerNight,
                     bedType: room.bedType,
+                    quantity: room.quantity,
                     amenities: updatedAmenities
                 });
 
@@ -100,6 +102,7 @@ const EditRoom = () => {
             formData.append("roomType", inputs.roomType);
             formData.append("pricePerNight", inputs.pricePerNight);
             formData.append("bedType", inputs.bedType);
+            formData.append("quantity", inputs.quantity);
 
             // amenities
             const amenities = Object.keys(inputs.amenities).filter(key => inputs.amenities[key]);
@@ -197,6 +200,12 @@ const EditRoom = () => {
                         <option value="Family Room">Family Room</option>
                         <option value="Premium Deluxe">Premium Deluxe</option>
                         <option value="Deluxe Room">Deluxe Room</option>
+                        <option value="Deluxe Suite">Deluxe Suite</option>
+                        <option value="Presidential Room">Presidential Room</option>
+                        <option value="Royal Room">Royal Room</option>
+                        <option value="Senator Suite">Senator Suite</option>
+                        <option value="Club Suite">Club Suite</option>
+                        <option value="Club Room">Club Room</option>
                     </select>
                 </div>
 
@@ -221,6 +230,17 @@ const EditRoom = () => {
                         className='border border-gray-300 mt-1 rounded p-2 w-24'
                         value={inputs.pricePerNight}
                         onChange={(e) => setInputs({...inputs, pricePerNight: e.target.value})}
+                    />
+                </div>
+
+                <div className='mt-4 text-gray-800'>
+                    <p>Số lượng phòng</p>
+                    <input 
+                        type="number"
+                        min={1}
+                        className='border border-gray-300 mt-1 rounded p-2 w-24'
+                        value={inputs.quantity}
+                        onChange={(e) => setInputs({...inputs, quantity: Number(e.target.value)})}
                     />
                 </div>
             </div>

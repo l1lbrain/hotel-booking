@@ -5,7 +5,26 @@ import Booking from '../models/Booking.js';
 //API tạo phòng mới
 export const createRoom = async (req, res) => {
     try {
-        const {roomType, pricePerNight, amenities, bedType} = req.body;
+        const {roomType, pricePerNight, amenities, bedType, quantity} = req.body;
+
+        //Kiểm tra trùng
+        const parsedAmenities = JSON.parse(amenities);
+
+        //Kiểm tra phòng trùng
+        const existingRoom = await Room.findOne({
+            roomType,
+            bedType,
+            pricePerNight: +pricePerNight,
+            quantity: +quantity,
+            amenities: { $all: parsedAmenities, $size: parsedAmenities.length }
+        });
+
+        if (existingRoom) {
+            return res.json({
+                success: false,
+                message: "Phòng với thông tin tương tự đã tồn tại"
+            });
+        }
 
         // Up ảnh lên cloudinary
         const uploadImages = req.files.map(async (file) => {
@@ -19,6 +38,7 @@ export const createRoom = async (req, res) => {
         await Room.create({
             roomType,
             pricePerNight: +pricePerNight,
+            quantity: +quantity,
             amenities: JSON.parse(amenities),
             bedType,
             images
@@ -54,11 +74,23 @@ export const getRooms = async (req, res) => {
                 ]
             });
 
-            // Danh sách phòng đã được đặt
-            const bookedRoomIds = booked.map(b => b.room.toString());
+            // // Danh sách phòng đã được đặt
+            // const bookedRoomIds = booked.map(b => b.room.toString());
 
-            // Lọc các phòng KHÔNG nằm trong danh sách booked
-            rooms = rooms.filter(room => !bookedRoomIds.includes(room._id.toString()));
+            // // Lọc các phòng KHÔNG nằm trong danh sách booked
+            // rooms = rooms.filter(room => !bookedRoomIds.includes(room._id.toString()));
+
+            // Đếm số lượng phòng đã được đặt cho mỗi loại phòng
+            const bookingCount = {};
+            booked.forEach(b => {
+                const key = b.room.toString();
+                bookingCount[key] = (bookingCount[key] || 0) + 1;
+            });
+
+            rooms = rooms.filter(room => {
+                const booked = bookingCount[room._id] || 0;
+                return booked < room.quantity;
+            });
         }
         res.json({success: true, rooms});
     } catch (error) {
@@ -83,13 +115,82 @@ export const getRoomById = async (req, res) => {
 
 
 //API lấy phòng trang quản lý phòng
+// export const getOwnerRooms = async (req, res) => {
+//     try {
+//         const rooms = await Room.find({}).sort({createdAt: -1});
+//         res.json({success: true, rooms});
+//     } catch (error) {
+//         res.json({success: false, message: error.message});
+//     }
+// };
+// export const getOwnerRooms = async (req, res) => {
+//     try {
+//         // Lấy tất cả phòng
+//         const rooms = await Room.find({}).sort({ createdAt: -1 });
+
+//         // Lấy các booking vẫn còn hiệu lực (chưa checkout)
+//         const activeBookings = await Booking.find({
+//             status: { $in: ["Đang chờ", "Đã thanh toán"] },
+//             checkInDate: { $lte: new Date() },
+//             checkOutDate: { $gte: new Date() }
+//         });
+
+//         // Nhóm booking theo roomId
+//         const bookingCount = {};
+//         activeBookings.forEach(b => {
+//             const key = b.room.toString();
+//             bookingCount[key] = (bookingCount[key] || 0) + 1;
+//         });
+
+//         // Gắn bookedCount vào từng phòng
+//         const roomsWithCount = rooms.map(room => ({
+//             ...room.toObject(),
+//             bookedCount: bookingCount[room._id] || 0
+//         }));
+
+//         res.json({ success: true, rooms: roomsWithCount });
+
+//     } catch (error) {
+//         res.json({ success: false, message: error.message });
+//     }
+// };
+
 export const getOwnerRooms = async (req, res) => {
-    try {
-        const rooms = await Room.find({}).sort({createdAt: -1});
-        res.json({success: true, rooms});
-    } catch (error) {
-        res.json({success: false, message: error.message});
-    }
+  try {
+    // Lấy tất cả phòng
+    const rooms = await Room.find({}).sort({ createdAt: -1 });
+
+    // Tính ngày hiện tại (bằng Date() là OK; nếu cần timezone chính xác hơn, normalize to start-of-day)
+    // const now = new Date("12-20-2025");
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+    // Lấy tất cả booking hiện đang chiếm chỗ vào ngày hôm nay
+    const activeBookings = await Booking.find({
+        status: { $in: ["Đang chờ", "Đã thanh toán"]},
+        // checkInDate: { $lte: endOfDay },
+        checkOutDate: { $gte: startOfDay }
+    });
+
+    // Nhóm booking theo roomId
+    const bookingCount = {};
+    activeBookings.forEach(b => {
+      const key = b.room.toString();
+      bookingCount[key] = (bookingCount[key] || 0) + 1;
+    });
+
+    // Gắn bookedCount vào từng phòng
+    const roomsWithCount = rooms.map(room => ({
+      ...room.toObject(),
+      bookedCount: bookingCount[room._id.toString()] || 0
+    }));
+
+    res.json({ success: true, rooms: roomsWithCount });
+
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
 };
 
 //API bật/tắt trạng thái phòng
@@ -183,14 +284,14 @@ export const deleteRoom = async (req, res) => {
 //API update phòng 
 export const updateRoom = async (req, res) => {
     try {
-        const { roomType, pricePerNight, amenities, bedType } = req.body;
+        const { roomType, pricePerNight, amenities, bedType, quantity } = req.body;
         const roomId = req.params.roomId;
 
         // Lấy phòng
         const room = await Room.findById(roomId);
         if (!room) return res.json({ success: false, message: "Không tìm thấy phòng" });
 
-        // ===== XỬ LÝ ẢNH =====
+        // Xử lý ảnh
         let finalImages = [];
 
         // 1. Ảnh cũ (URL)
@@ -213,9 +314,10 @@ export const updateRoom = async (req, res) => {
             finalImages.push(...uploaded);
         }
 
-        // ===== CẬP NHẬT =====
+        // Cập nhật thông tin phòng 
         room.roomType = roomType;
         room.pricePerNight = +pricePerNight;
+        room.quantity = +quantity;
         room.amenities = JSON.parse(amenities);
         room.images = finalImages;
         room.bedType = bedType;
