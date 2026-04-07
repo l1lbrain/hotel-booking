@@ -12,6 +12,4 @@ userRouter.get('/check-info', protect, checkUserInfo);
 
 userRouter.patch('/update-info', protect, updateUserInfo);
 
-// userRouter.post('/store-recent-search', protect, storeRecentSearchedRooms);
-
 export default userRouter;

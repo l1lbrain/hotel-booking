@@ -122,12 +122,12 @@ const MyBookings = () => {
                 {/* Status  */}
                 <div className='flex flex-col items-start justify-center pt-3'>
                     <div className='flex items-center gap-2'>
-                        <div className={`h-3 w-3 rounded-full ${booking.isPaid ? 'bg-green-500' : 'bg-red-500'} ${(booking.status === "Đã hủy" && !booking.isPaid) && "!bg-gray-700"}`}>
+                        <div className={`h-3 w-3 rounded-full ${booking.isPaid ? 'bg-green-500' : 'bg-red-500'} ${((booking.status === "Đã hủy" || new Date(booking.checkInDate).getDate() < new Date().getDate()) && !booking.isPaid) && "!bg-gray-700"}`}>
                         </div>
-                        <p className={`text-sm ${booking.isPaid ? 'text-green-500' : 'text-red-500'} ${(booking.status === "Đã hủy" && !booking.isPaid) && "!text-gray-700"}`}>{(booking.status === "Đã hủy" && !booking.isPaid) ? "Đã hủy" : booking.isPaid ? "Đã thanh toán" : "Đang chờ"}</p>
+                        <p className={`text-sm ${booking.isPaid ? 'text-green-500' : 'text-red-500'} ${((booking.status === "Đã hủy" || new Date(booking.checkInDate).getDate() < new Date().getDate()) && !booking.isPaid) && "!text-gray-700"}`}>{((booking.status === "Đã hủy" || new Date(booking.checkInDate).getDate() < new Date().getDate()) && !booking.isPaid) ? "Đã hủy" : booking.isPaid ? "Đã thanh toán" : "Đang chờ"}</p>
                     </div>
                     {!booking.isPaid && (
-                        <button onClick={() => handlePayment(booking._id)} className={`px-4 py-1.5 mt-4 text-xs border border-gray-400 rounded-full hover:bg-gray-50 transition-all cursor-pointer ${booking.status === "Đã hủy" && "hidden"}`}>Thanh toán ngay</button>
+                        <button onClick={() => handlePayment(booking._id)} className={`px-4 py-1.5 mt-4 text-xs border border-gray-400 rounded-full hover:bg-gray-50 transition-all cursor-pointer ${(booking.status === "Đã hủy" || new Date(booking.checkInDate).getDate() < new Date().getDate()) && "hidden"}`}>Thanh toán ngay</button>
                     )}
                 </div>
             </div>

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-// import { useState } from 'react';
 import { roomCommonData} from '../assets/assets';
 import RatingStar from '../components/RatingStar';
 import { useAppContext } from '../context/AppContext';

@@ -90,7 +90,7 @@ const ListRoom = () => {
                     <tr>
                         <th className='py-3 px-4 text-gray-800 font-medium w-36'>Loại phòng</th>
                         <th className='py-3 px-4 text-gray-800 font-medium w-26 text-center'>Số lượng</th>
-                        <th className='py-3 px-4 text-gray-800 font-medium w-20 text-center '>Trống</th>
+                        {/* <th className='py-3 px-4 text-gray-800 font-medium w-20 text-center '>Trống</th> */}
                         <th className='py-3 px-4 text-gray-800 font-medium max-sm:hidden'>Các tiện nghi & đồ dùng thiết yếu</th>
                         <th className='py-3 px-4 text-gray-800 font-medium w-28'>Giá phòng</th>
                         <th className='py-3 px-4 text-gray-800 font-medium text-center w-40'>Hành động</th>
@@ -105,9 +105,9 @@ const ListRoom = () => {
                             <td className='py-3 px-4 text-gray-700 border-t border-gray-300 text-center'>
                                 {item.quantity}
                             </td>
-                            <td className='py-3 px-4 text-gray-700 border-t border-gray-300 text-center'>
+                            {/* <td className='py-3 px-4 text-gray-700 border-t border-gray-300 text-center'>
                                 {item.quantity - item.bookedCount}
-                            </td>
+                            </td> */}
                             <td className='py-3 px-4 text-gray-700 border-t border-gray-300 max-sm:hidden'>
                                 {item.amenities.join(', ')}
                             </td>

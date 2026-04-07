@@ -3,6 +3,9 @@ import Booking from "../models/Booking.js"
 import Room from "../models/Room.js";
 import stripe from "stripe";
 import { Resend } from "resend"
+import PDFDocument from "pdfkit";
+import path from "path";
+import fs from "fs";
 
 //Kiểm tra phòng còn trống hay không
 
@@ -223,6 +226,100 @@ export const confirmBooking = async (req, res) => {
         res.json({success: false, message: "Lỗi server"});
     }
 }
+
+//API xuất báo cáo
+export const exportBookingsPDF = async (req, res) => {
+    try {
+        const { month, year } = req.query;
+
+        let filter = {};
+
+        if (month && year) {
+            const start = new Date(year, month - 1, 1);
+            const end = new Date(year, month, 1);
+            filter.checkInDate = { $gte: start, $lt: end };
+        } else if (year) {
+            filter.checkInDate = {
+                $gte: new Date(year, 0, 1),
+                $lt: new Date(Number(year) + 1, 0, 1)
+            };
+        } else if (month) {
+            filter.$expr = {
+                $eq: [{ $month: "$checkInDate" }, Number(month)]
+            };
+        }
+
+        const bookings = await Booking.find(filter)
+            .populate("room user")
+            .sort({ createdAt: -1 });
+
+        // ===== TẠO FILE PDF =====
+        const doc = new PDFDocument({ margin: 40, size: "A4" });
+
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader(
+            "Content-Disposition",
+            `attachment; filename=booking-report-${Date.now()}.pdf`
+        );
+
+        doc.pipe(res);
+
+        const fontPath = path.join(process.cwd(), "fonts/Roboto-Regular.ttf");
+        doc.font(fontPath);
+
+        // ===== HEADER =====
+        doc.fontSize(18).text("BÁO CÁO ĐẶT PHÒNG", { align: "center" });
+        doc.moveDown(0.5);
+
+        const exportTime = new Date().toLocaleString("vi-VN", {
+            hour12: false, // dùng 24h
+        });
+        const now = new Date();
+        doc
+            .fontSize(11)
+            .text(`Thời gian: ${month ? `Tháng ${month} /` : "Toàn bộ năm"} ${year || "Tất cả năm"}`)
+            .text(`Ngày xuất báo cáo: ${now.toLocaleDateString("vi-VN")} ${now.toLocaleTimeString("vi-VN")}`);
+
+        doc.moveDown();
+
+        // ===== TABLE HEADER =====
+        doc.fontSize(11).text(
+            "Khách hàng | Số điện thoại | Phòng | Check-in | Check-out | Tổng tiền | Trạng thái",
+            { underline: true }
+        );
+
+        doc.moveDown(0.5);
+
+        let totalRevenue = 0;
+
+        bookings.forEach((b, index) => {
+            if (b.isPaid) totalRevenue += b.totalPrice;
+
+            doc.text(
+                `${index + 1}. ${b.user?.username || "N/A"}${b.user?.role === "deleted-user" ? " (Đã xóa)" : ""} | ${b.user?.phone || "N/A"} | ${
+                    b.room?.roomType || "N/A"
+                } | ${new Date(b.checkInDate).toLocaleDateString("vi-VN")} - ${new Date(
+                    b.checkOutDate
+                ).toLocaleDateString("vi-VN")} | ${b.totalPrice.toLocaleString(
+                    "vi-VN"
+                )} | ${b.isPaid ? "Hoàn tất" : "Chưa thanh toán"}`,
+                { lineGap: 4 }
+            );
+        });
+
+        doc.moveDown();
+
+        // ===== SUMMARY =====
+        doc.fontSize(12)
+            .text(`Tổng số đơn: ${bookings.length}`)
+            .text(`Tổng doanh thu: ${totalRevenue.toLocaleString("vi-VN")} VND`);
+
+        doc.end();
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Xuất PDF thất bại" });
+    }
+};
 
 // export const stripePayment = async (req, res) => {
 //     try {

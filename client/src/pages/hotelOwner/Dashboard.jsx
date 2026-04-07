@@ -110,6 +110,33 @@ const Dashboard = () => {
         }
     }
 
+    // xuất báo cáo PDF
+    const exportPDF = async () => {
+    try {
+        const response = await axios.get("/api/bookings/export/pdf", {
+            headers: {
+                Authorization: `Bearer ${await getToken()}`
+            },
+            params: {
+                month: month || undefined,
+                year: year || undefined
+            },
+            responseType: "blob"
+        });
+
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", "bao-cao-dat-phong.pdf");
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    } catch (error) {
+        toast.error("Xuất báo cáo thất bại");
+        console.log(error);
+    }
+};
+
     useEffect(() => {
         if (user) {
             fetchBookingYears();
@@ -151,6 +178,12 @@ return (
                 <option key={y} value={y}>{y}</option>
                 ))}
             </select>
+            <button
+                onClick={exportPDF}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm flex items-center gap-2"
+            >
+                Xuất báo cáo
+            </button>
         </div>
 
         <div className='flex gap-4 my-8'>
@@ -208,8 +241,8 @@ return (
                                 </button>
                             </td>
                             <td className='py-3 px-4 border-t border-gray-300 text-center'>
-                                <button onClick={() => confirmBooking(item._id)} disabled={item.status === "Đã hủy"} hidden={item.status === "Đã hủy"} className={`py-1 px-3 mr-0.5 text-xs rounded-full mx-auto border border-green-300 cursor-pointer text-green-500 ${item.isPaid && "!bg-green-200 !text-green-600 !border-none !cursor-default"}`}>{item.isPaid ? "Hoàn tất" : "Xác nhận"}</button>
-                                <button onClick={() => cancelBooking(item._id)} disabled={item.status === "Đã hủy"} hidden={item.isPaid} className={`py-1 px-3 text-xs rounded-full mx-auto border border-red-300 cursor-pointer text-red-500 ${item.status === "Đã hủy" && "!text-white bg-gray-400 border-none !cursor-default"}`}>{item.status === "Đã hủy" ? "Đã hủy" : "Hủy"}</button>
+                                <button onClick={() => confirmBooking(item._id)} disabled={item.status === "Đã hủy"} hidden={item.status === "Đã hủy" || (new Date(item.checkInDate).getDate() < new Date().getDate() && !item.isPaid)} className={`py-1 px-3 mr-0.5 text-xs rounded-full mx-auto border border-green-300 cursor-pointer text-green-500 ${item.isPaid && "!bg-green-200 !text-green-600 !border-none !cursor-default"}`}>{item.isPaid ? "Hoàn tất" : "Xác nhận"}</button>
+                                <button onClick={() => cancelBooking(item._id)} disabled={item.status === "Đã hủy"} hidden={item.isPaid} className={`py-1 px-3 text-xs rounded-full mx-auto border border-red-300 cursor-pointer text-red-500 ${(item.status === "Đã hủy" || new Date(item.checkInDate).getDate() < new Date().getDate()) && "!text-white bg-gray-400 border-none !cursor-default"}`}>{(item.status === "Đã hủy" || new Date(item.checkInDate).getDate() < new Date().getDate()) ? "Đã hủy" : "Hủy"}</button>
                             </td>
                         </tr>
                     ))}

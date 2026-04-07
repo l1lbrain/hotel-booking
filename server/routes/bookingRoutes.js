@@ -1,5 +1,5 @@
 import express from 'express';
-import { cancelBooking, checkAvailabilityAPI, confirmBooking, createBooking, getBookingYears, getOwnerBookings, getUserBookings } from '../controllers/bookingController.js';
+import { cancelBooking, checkAvailabilityAPI, confirmBooking, createBooking, exportBookingsPDF, getBookingYears, getOwnerBookings, getUserBookings } from '../controllers/bookingController.js';
 import { protect } from '../middleware/authMiddleware.js';
 // import { createZaloPayPayment } from '../controllers/zaloPayment.js';
 import { createVNPayPayment, handleVNPayReturn,  } from '../controllers/vnpayController.js';
@@ -11,6 +11,7 @@ bookingRouter.post('/book', protect, createBooking);
 bookingRouter.get('/user', protect, getUserBookings);
 bookingRouter.get('/years', protect, getBookingYears);
 bookingRouter.get('/hotel', protect, getOwnerBookings);
+bookingRouter.get("/export/pdf", protect, exportBookingsPDF);
 // bookingRouter.post('/stripe-payment', protect, stripePayment);
 bookingRouter.patch('/:id/cancel', protect, cancelBooking);
 bookingRouter.patch('/:id/confirm', protect, confirmBooking);

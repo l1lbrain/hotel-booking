@@ -11,8 +11,6 @@ import userRouter from './routes/userRoutes.js';
 import connectCloudinary from './configs/cloudinary.js';
 import roomRouter from './routes/roomRoutes.js';
 import bookingRouter from './routes/bookingRoutes.js';
-// import { stripeWebhooks } from './controllers/stripeWebhooks.js';
-// import { zaloPayWebhook } from './controllers/zalopayWebhooks.js';
 import chatbotRouter from './routes/chatbotRoute.js';
 
 connectDB();
@@ -20,16 +18,6 @@ connectCloudinary();
 
 const app = express();
 app.use(cors());
-
-//API lắng nghe stripe webhooks
-// app.post('/api/stripe', express.raw({type: "application/json"}), stripeWebhooks);
-
-//API lắng nghe ZaloPay webhooks
-// app.post('/api/zalopay/webhook', express.json(), zaloPayWebhook);
-
-// app.get('/payment-success', (req, res) => {
-//     console.log(req.query);
-// });
 
 //Middleware
 app.use(express.json());
